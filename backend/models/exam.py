@@ -28,4 +28,6 @@ class ExamSubmission(db.Model):
     student = db.relationship('User', backref='exam_submissions')
 
     def __repr__(self):
-        return f'<ExamSubmission Exam {self.exam_id} - Student {self.student_id}>'    
+        return f'<ExamSubmission Exam {self.exam_id} - Student {self.student_id}>' 
+
+    # jguvyfycvjhgfvhmgv    
