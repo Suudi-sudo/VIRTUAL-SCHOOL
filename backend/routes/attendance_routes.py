@@ -26,8 +26,19 @@ def parse_iso_date(date_str):
 
 @attendance_bp.route('/attendances', methods=['GET'])
 def get_attendances():
-    attendances = Attendance.query.all()
-    return jsonify([serialize_attendance(a) for a in attendances]), 200
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 10, type=int)
+    pagination = Attendance.query.paginate(page=page, per_page=per_page, error_out=False)
+
+    attendances_data = [serialize_attendance(a) for a in pagination.items]
+
+    return jsonify({
+        "attendances": attendances_data,
+        "page": pagination.page,
+        "per_page": pagination.per_page,
+        "total": pagination.total,
+        "pages": pagination.pages
+    }), 200
 
 @attendance_bp.route('/attendances/<int:attendance_id>', methods=['GET'])
 def get_attendance(attendance_id):
@@ -43,11 +54,13 @@ def create_attendance():
     for field in required_fields:
         if field not in data:
             abort(400, f"Missing required field: {field}")
+
     date_value = parse_iso_date(data.get('date'))
     if data.get('date') and not date_value:
         abort(400, "Invalid date format. Must be ISO8601.")
     if not date_value:
         date_value = datetime.utcnow()
+
     new_attendance = Attendance(
         class_id=data["class_id"],
         student_id=data["student_id"],
@@ -57,6 +70,7 @@ def create_attendance():
     )
     db.session.add(new_attendance)
     db.session.commit()
+
     return jsonify(serialize_attendance(new_attendance)), 201
 
 @attendance_bp.route('/attendances/<int:attendance_id>', methods=['PUT'])
@@ -65,6 +79,7 @@ def update_attendance(attendance_id):
     data = request.get_json()
     if not data:
         abort(400, "Missing JSON body")
+
     if "class_id" in data:
         attendance.class_id = data["class_id"]
     if "student_id" in data:
@@ -78,6 +93,7 @@ def update_attendance(attendance_id):
         if data["date"] and not date_value:
             abort(400, "Invalid date format. Must be ISO8601.")
         attendance.date = date_value if date_value else attendance.date
+
     db.session.commit()
     return jsonify(serialize_attendance(attendance)), 200
 
