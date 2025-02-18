@@ -12,6 +12,7 @@ psycopg2-binary = "*"
 pytest = "*"
 flask-cors = "*"
 flask-migrate = "*"
+flask-mail = "*"
 
 [dev-packages]
 
