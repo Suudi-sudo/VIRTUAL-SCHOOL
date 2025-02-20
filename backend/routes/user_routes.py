@@ -1,7 +1,12 @@
 import os
 import json
 from flask import Blueprint, request, jsonify, redirect, url_for, session, current_app
-from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
+from flask_jwt_extended import (
+    create_access_token,
+    jwt_required,
+    get_jwt_identity,
+    decode_token
+)
 from flask_mail import Message
 from google.oauth2 import id_token
 from google.auth.transport import requests as google_requests
@@ -110,7 +115,6 @@ def login():
 def google_login():
     """Initiate Google OAuth flow."""
     # This depends on how you have set up your OAuth library.
-    # If you are using authlib or another library, you need to configure 'oauth' properly.
     # Example (pseudocode):
     # redirect_uri = url_for('user_bp.google_callback', _external=True)
     # return oauth.google.authorize_redirect(redirect_uri)
@@ -121,13 +125,13 @@ def google_callback():
     """Handle the Google OAuth callback."""
     return jsonify({"msg": "Google callback not fully implemented in this snippet."}), 501
 
+# --- New Reset Password Endpoints ---
+
 @user_bp.route('/reset-password', methods=['POST'])
-def reset_password():
+def request_reset_password():
     """
-    Send a reset token to the user's email.
-    NOTE: This example uses create_access_token with user.email,
-    which is not the most secure approach for a real password reset flow.
-    For production, consider using a dedicated reset token model.
+    Send a reset password link to the user's email.
+    The link includes a JWT reset token as a URL parameter.
     """
     data = request.get_json()
     if not data:
@@ -141,8 +145,11 @@ def reset_password():
     if not user:
         return jsonify({"msg": "Email not found."}), 404
 
-    # Generate a simple reset token with JWT (expires in 15 minutes)
+    # Generate a reset token that expires in 15 minutes
     token = create_access_token(identity=user.email, expires_delta=timedelta(minutes=15))
+    # Build the reset password link (this URL should be accessible to your client/frontend)
+    reset_link = url_for('user_bp.reset_password_with_token', token=token, _external=True)
+
     mail = current_app.extensions.get('mail')
     if mail:
         try:
@@ -151,14 +158,50 @@ def reset_password():
                 recipients=[email],
                 sender="noreply@yourapp.com"
             )
-            msg.body = f"Your password reset token is: {token}"
+            msg.body = (
+                f"Hello {user.username},\n\n"
+                "We received a request to reset your password. "
+                f"Click the link below to reset your password:\n\n{reset_link}\n\n"
+                "This link will expire in 15 minutes.\n\n"
+                "If you did not request a password reset, please ignore this email."
+            )
             mail.send(msg)
-            return jsonify({"msg": "Reset token sent to your email."}), 200
+            return jsonify({"msg": "Reset link sent to your email."}), 200
         except Exception as e:
             current_app.logger.error(f"Error sending reset email: {e}")
             return jsonify({"msg": "Could not send reset email."}), 500
     else:
         return jsonify({"msg": "Mail server not configured"}), 500
+
+@user_bp.route('/reset-password/<token>', methods=['POST'])
+def reset_password_with_token(token):
+    """
+    Reset the user's password using the token provided in the URL.
+    Expects a JSON payload with 'new_password'.
+    """
+    data = request.get_json()
+    if not data or 'new_password' not in data:
+        return jsonify({"msg": "New password is required"}), 400
+
+    try:
+        # Decode the token to get the user's email (identity)
+        decoded = decode_token(token)
+        user_email = decoded.get("sub")
+    except Exception as e:
+        current_app.logger.error(f"Token decoding error: {e}")
+        return jsonify({"msg": "Invalid or expired token"}), 400
+
+    user = User.query.filter_by(email=user_email).first()
+    if not user:
+        return jsonify({"msg": "User not found."}), 404
+
+    # Update the user's password
+    user.set_password(data['new_password'])
+    db.session.commit()
+
+    return jsonify({"msg": "Password has been reset successfully."}), 200
+
+# --- End Reset Password Endpoints ---
 
 @user_bp.route('/profile/<int:user_id>', methods=['GET', 'PUT'])
 @jwt_required()
