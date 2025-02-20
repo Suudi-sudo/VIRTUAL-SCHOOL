@@ -84,7 +84,7 @@ def register():
             mail.send(msg)
         except Exception as e:
             # Log the error, but do not fail the registration
-            print(f"Error sending welcome email: {e}")
+            current_app.logger.error(f"Error sending welcome email: {e}")
 
     return jsonify({"msg": "User created successfully."}), 201
 
@@ -125,10 +125,9 @@ def google_callback():
 def reset_password():
     """
     Send a reset token to the user's email.
-    NOTE: This example uses create_access_token with user.email, 
-    which is not the most secure approach for a real password reset flow. 
-    For production, consider using a dedicated reset token model 
-    (as previously demonstrated).
+    NOTE: This example uses create_access_token with user.email,
+    which is not the most secure approach for a real password reset flow.
+    For production, consider using a dedicated reset token model.
     """
     data = request.get_json()
     if not data:
@@ -142,8 +141,8 @@ def reset_password():
     if not user:
         return jsonify({"msg": "Email not found."}), 404
 
-    # Generate a simple reset token with JWT
-    token = create_access_token(identity=user.email)
+    # Generate a simple reset token with JWT (expires in 15 minutes)
+    token = create_access_token(identity=user.email, expires_delta=timedelta(minutes=15))
     mail = current_app.extensions.get('mail')
     if mail:
         try:
@@ -156,7 +155,7 @@ def reset_password():
             mail.send(msg)
             return jsonify({"msg": "Reset token sent to your email."}), 200
         except Exception as e:
-            print(f"Error sending reset email: {e}")
+            current_app.logger.error(f"Error sending reset email: {e}")
             return jsonify({"msg": "Could not send reset email."}), 500
     else:
         return jsonify({"msg": "Mail server not configured"}), 500
@@ -186,7 +185,7 @@ def profile(user_id):
         if not data:
             return jsonify({"msg": "No input data provided"}), 400
 
-        # Update username and/or profile picture
+        # Update username and/or other fields as necessary
         if 'username' in data:
             user.username = data['username']
         db.session.commit()
