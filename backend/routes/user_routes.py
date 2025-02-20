@@ -150,22 +150,23 @@ def request_reset_password():
     # Build the reset password link (this URL should be accessible to your client/frontend)
     reset_link = url_for('user_bp.reset_password_with_token', token=token, _external=True)
 
-    mail = current_app.extensions.get('mail')
-    if mail:
+    mail_instance = current_app.extensions.get('mail')
+    if mail_instance:
         try:
             msg = Message(
                 subject="Password Reset Request",
                 recipients=[email],
                 sender="noreply@yourapp.com"
             )
-            msg.body = (
-                f"Hello {user.username},\n\n"
-                "We received a request to reset your password. "
-                f"Click the link below to reset your password:\n\n{reset_link}\n\n"
-                "This link will expire in 15 minutes.\n\n"
-                "If you did not request a password reset, please ignore this email."
+            # Using HTML content so that the reset link appears clickable in the email
+            msg.html = (
+                f"<p>Hello {user.username},</p>"
+                "<p>We received a request to reset your password. Please click the link below to reset your password:</p>"
+                f"<p><a href='{reset_link}'>{reset_link}</a></p>"
+                "<p>This link will expire in 15 minutes.</p>"
+                "<p>If you did not request a password reset, please ignore this email.</p>"
             )
-            mail.send(msg)
+            mail_instance.send(msg)
             return jsonify({"msg": "Reset link sent to your email."}), 200
         except Exception as e:
             current_app.logger.error(f"Error sending reset email: {e}")
@@ -200,8 +201,6 @@ def reset_password_with_token(token):
     db.session.commit()
 
     return jsonify({"msg": "Password has been reset successfully."}), 200
-
-# --- End Reset Password Endpoints ---
 
 @user_bp.route('/profile/<int:user_id>', methods=['GET', 'PUT'])
 @jwt_required()
