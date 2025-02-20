@@ -1,5 +1,5 @@
-from models import db
-from models.school import School
+from models import db, School
+
 
 class SchoolService:
     @staticmethod
@@ -12,3 +12,5 @@ class SchoolService:
     @staticmethod
     def get_school(id):
         return School.query.get_or_404(id)
+    
+    
