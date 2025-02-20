@@ -3,6 +3,7 @@ from flask import Flask
 from flask_migrate import Migrate
 from flask_jwt_extended import JWTManager
 from flask_mail import Mail
+import cloudinary
 from dotenv import load_dotenv  # ✅ Load .env variables
 
 # ✅ Load environment variables from .env file
@@ -23,13 +24,20 @@ def create_app():
     # ✅ JWT Configuration
     app.config['JWT_SECRET_KEY'] = os.getenv("JWT_SECRET_KEY", "fallback_secret_key")
 
-    # ✅ Mail Configuration
-    app.config['MAIL_SERVER'] = os.getenv("MAIL_SERVER", "smtp.gmail.com")
-    app.config['MAIL_PORT'] = int(os.getenv("MAIL_PORT", 587))
-    app.config['MAIL_USE_TLS'] = os.getenv("MAIL_USE_TLS", "True").lower() in ['true', '1']
-    app.config['MAIL_USERNAME'] = os.getenv("MAIL_USERNAME", "")
-    app.config['MAIL_PASSWORD'] = os.getenv("MAIL_PASSWORD", "")
-    app.config['MAIL_DEFAULT_SENDER'] = os.getenv("MAIL_DEFAULT_SENDER", "noreply@example.com")
+    # ✅ Mail Configuration (Now loaded from .env)
+    app.config['MAIL_SERVER'] = os.getenv("MAIL_SERVER")
+    app.config['MAIL_PORT'] = int(os.getenv("MAIL_PORT"))
+    app.config['MAIL_USE_TLS'] = os.getenv("MAIL_USE_TLS").lower() in ['true', '1']
+    app.config['MAIL_USERNAME'] = os.getenv("MAIL_USERNAME")
+    app.config['MAIL_PASSWORD'] = os.getenv("MAIL_PASSWORD")
+    app.config['MAIL_DEFAULT_SENDER'] = os.getenv("MAIL_DEFAULT_SENDER")
+
+    # ✅ Cloudinary Configuration (Added)
+    cloudinary.config(
+        cloud_name=os.getenv("CLOUD_NAME"),
+        api_key=os.getenv("CLOUDINARY_API_KEY"),
+        api_secret=os.getenv("CLOUDINARY_API_SECRET")
+    )
 
     # ✅ Import db & models here (AFTER app is created)
     from models import db  # ✅ Import db from models
@@ -40,7 +48,10 @@ def create_app():
     JWTManager(app)
 
     # ✅ Debugging Print
-    print(f"\n✅ Running with Database: {app.config['SQLALCHEMY_DATABASE_URI']}\n")
+    print("\n✅ Environment Variables Loaded:")
+    print(f"  Database: {app.config['SQLALCHEMY_DATABASE_URI']}")
+    print(f"  Mail Server: {app.config['MAIL_SERVER']}")
+    print(f"  Cloudinary: {os.getenv('CLOUD_NAME')}\n")
 
     # ✅ Import Blueprints AFTER App Initialization (to avoid circular imports)
     from routes.user_routes import user_bp

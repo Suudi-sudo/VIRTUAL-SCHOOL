@@ -15,10 +15,10 @@ flask = "*"
 flask-jwt-extended = "*"
 flask-mail = "*"
 authlib = "*"
-cloudinary = "*"
 google-auth = "*"
 google-auth-oauthlib = "*"
 google-auth-httplib2 = "*"
+cloudinary = "*"
 
 [dev-packages]
 
