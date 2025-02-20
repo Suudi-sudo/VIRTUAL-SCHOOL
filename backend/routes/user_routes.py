@@ -7,7 +7,6 @@ from google.oauth2 import id_token
 from google.auth.transport import requests
 import cloudinary.uploader
 from models import User, db
-from app import mail, oauth
 from urllib.parse import quote_plus, urlencode
 
 # Configuration
