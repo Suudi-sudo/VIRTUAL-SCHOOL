@@ -4,16 +4,21 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-flask = "*"
 alembic = "*"
 psycopg2-binary = "*"
 pytest = "*"
 flask-cors = "*"
 flask-migrate = "*"
-flask-mail = "*"
-flask-jwt-extended = "*"
 flask-sqlalchemy = "*"
 python-dotenv = "*"
+flask = "*"
+flask-jwt-extended = "*"
+flask-mail = "*"
+authlib = "*"
+cloudinary = "*"
+google-auth = "*"
+google-auth-oauthlib = "*"
+google-auth-httplib2 = "*"
 
 [dev-packages]
 
