@@ -1,35 +1,54 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext';
+import { SchoolProvider } from './context/SchoolContext';
+import { ChatProvider } from './context/ChatContext';
+import Homepage from './pages/Homepage/Homepage';
+import Login from './pages/auth/Login';
+import Signup from './pages/auth/Signup';
+import StudentDashboard from './pages/dashboard/StudentDashboard';
+import TeacherDashboard from './pages/dashboard/TeacherDashboard';
+import OwnerDashboard from './pages/dashboard/OwnerDashboard';
+// import StudentProfile from './pages/profile/StudentProfile';
+// import TeacherProfile from './pages/profile/TeacherProfile';
+// import OwnerProfile from './pages/profile/OwnerProfile';
+import StudentChat from './pages/chat/StudentChat';
+// ... Import other pages as needed
 
-function App() {
-  const [count, setCount] = useState(0)
-
+const App = () => {
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
-}
+    <AuthProvider>
+      <SchoolProvider>
+        <ChatProvider>
+          <Router>
+            <Routes>
+              {/* Homepage Route */}
+              <Route path="/" element={<Homepage />} />
 
-export default App
+              {/* Authentication Routes */}
+              <Route path="/login" element={<Login />} />
+              <Route path="/signup" element={<Signup />} />
+
+              {/* Dashboard Routes */}
+              <Route path="/dashboard/student" element={<StudentDashboard />} />
+              <Route path="/dashboard/teacher" element={<TeacherDashboard />} />
+              <Route path="/dashboard/owner" element={<OwnerDashboard />} />
+
+              {/* Profile Routes */}
+              {/* <Route path="/profile/student" element={<StudentProfile />} />
+              <Route path="/profile/teacher" element={<TeacherProfile />} />
+              <Route path="/profile/owner" element={<OwnerProfile />} /> */}
+
+              {/* Chat Routes */}
+              <Route path="/chat/student" element={<StudentChat />} />
+              
+              {/* Add more routes as needed */}
+            </Routes>
+          </Router>
+        </ChatProvider>
+      </SchoolProvider>
+    </AuthProvider>
+  );
+};
+
+export default App;
