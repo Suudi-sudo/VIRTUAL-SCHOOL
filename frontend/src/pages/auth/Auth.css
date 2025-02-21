@@ -1,0 +1,128 @@
+/* Auth.css */
+
+/* Background Styling */
+.auth-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background: linear-gradient(135deg, #1e1e1e, #bdbdbd);
+    font-family: 'Poppins', sans-serif;
+    color: white;
+  }
+  
+  /* Glassmorphism Box */
+  .auth-box {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(15px);
+    padding: 40px;
+    width: 400px;
+    border-radius: 12px;
+    text-align: center;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.5);
+    transition: transform 0.3s ease;
+  }
+  
+  .auth-box:hover {
+    transform: scale(1.02);
+  }
+  
+  /* Heading */
+  .auth-box h2 {
+    font-size: 26px;
+    margin-bottom: 20px;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: #f7f4f1;
+  }
+  
+  /* Input Fields */
+  .auth-box input,
+  .auth-box select {
+    width: 100%;
+    padding: 12px;
+    margin: 10px 0;
+    border: none;
+    border-radius: 6px;
+    font-size: 16px;
+    background: rgba(255, 255, 255, 0.15);
+    color: white;
+    outline: none;
+    transition: 0.3s ease;
+  }
+  
+  .auth-box input::placeholder {
+    color: rgba(255, 255, 255, 0.7);
+  }
+  
+  .auth-box select {
+    cursor: pointer;
+  }
+  
+  .auth-box input:focus,
+  .auth-box select:focus {
+    background: rgba(255, 255, 255, 0.2);
+    box-shadow: 0px 0px 8px rgba(255, 255, 255, 0.3);
+  }
+  
+  /* Buttons */
+  .auth-box button {
+    width: 100%;
+    padding: 12px;
+    margin-top: 10px;
+    background: #111110;
+    border: none;
+    color: white;
+    font-size: 18px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+  }
+  
+  .auth-box button:hover {
+    background: #e08700;
+  }
+  
+  /* Google Login Button */
+  .google-login {
+    display:flex;
+    align-items:center;
+    justify-content: center;
+    gap: 40px;
+    background: white;
+    color: black;
+    padding: 12px;
+    border-radius: 40px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.3s ease;
+    margin: 100px;
+  }
+  
+  .google-login img {
+    width: 40px;
+    height: 20px;
+    background-image: url(../../google-logo.png);
+  }
+  
+  .google-login:hover {
+    background: #e0e0e0;
+  }
+  
+  /* Animations */
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  .auth-box {
+    animation: fadeIn 0.5s ease-in-out;
+  }
+  
