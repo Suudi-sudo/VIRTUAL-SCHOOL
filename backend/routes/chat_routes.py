@@ -1,89 +1,73 @@
-# chat_routes.py
-
-from flask import Blueprint, request, jsonify, abort
-from datetime import datetime
+from flask import Blueprint, request, jsonify
+from flask_jwt_extended import jwt_required
 from models import db, Chat
+from datetime import datetime
 
 chat_bp = Blueprint('chat_bp', __name__)
 
-def serialize_chat(chat):
-    return {
+@chat_bp.route('/chats', methods=['GET'])
+@jwt_required()
+def get_chats():
+    page = request.args.get('page', 1, type=int)
+    chats_paginated = Chat.query.paginate(page=page, per_page=10)
+    chats = [{
         "id": chat.id,
         "class_id": chat.class_id,
         "sender_id": chat.sender_id,
         "message": chat.message,
-        "timestamp": chat.timestamp.isoformat() if chat.timestamp else None
-    }
-
-@chat_bp.route('/chats', methods=['GET'])
-def get_chats():
-    page = request.args.get('page', 1, type=int)
-    per_page = request.args.get('per_page', 10, type=int)
-    pagination = Chat.query.paginate(page=page, per_page=per_page, error_out=False)
-    chats_data = [serialize_chat(c) for c in pagination.items]
+        "timestamp": chat.timestamp.isoformat()
+    } for chat in chats_paginated.items]
     return jsonify({
-        "chats": chats_data,
-        "page": pagination.page,
-        "per_page": pagination.per_page,
-        "total": pagination.total,
-        "pages": pagination.pages
+        "chats": chats,
+        "total": chats_paginated.total,
+        "pages": chats_paginated.pages,
+        "current_page": chats_paginated.page
     }), 200
 
-@chat_bp.route('/chats/<int:chat_id>', methods=['GET'])
-def get_chat(chat_id):
-    chat = Chat.query.get_or_404(chat_id)
-    return jsonify(serialize_chat(chat)), 200
-
 @chat_bp.route('/chats', methods=['POST'])
+@jwt_required()
 def create_chat():
     data = request.get_json()
-    if not data:
-        abort(400, "Missing JSON body")
-    required_fields = ["class_id", "sender_id", "message"]
-    for field in required_fields:
-        if field not in data:
-            abort(400, f"Missing required field: {field}")
-    timestamp_value = data.get('timestamp')
-    if timestamp_value:
-        try:
-            timestamp_value = datetime.fromisoformat(timestamp_value)
-        except ValueError:
-            abort(400, "Invalid timestamp format. Must be ISO8601.")
-    else:
-        timestamp_value = datetime.utcnow()
+    if not data or not all(k in data for k in ('class_id', 'sender_id', 'message')):
+        return jsonify({"msg": "class_id, sender_id and message required"}), 400
     new_chat = Chat(
-        class_id=data["class_id"],
-        sender_id=data["sender_id"],
-        message=data["message"],
-        timestamp=timestamp_value
+        class_id=data['class_id'],
+        sender_id=data['sender_id'],
+        message=data['message'],
+        timestamp=datetime.utcnow()
     )
     db.session.add(new_chat)
     db.session.commit()
-    return jsonify(serialize_chat(new_chat)), 201
+    return jsonify({"msg": "Chat created", "id": new_chat.id}), 201
+
+@chat_bp.route('/chats/<int:chat_id>', methods=['GET'])
+@jwt_required()
+def get_chat(chat_id):
+    chat = Chat.query.get_or_404(chat_id)
+    return jsonify({
+        "id": chat.id,
+        "class_id": chat.class_id,
+        "sender_id": chat.sender_id,
+        "message": chat.message,
+        "timestamp": chat.timestamp.isoformat()
+    }), 200
 
 @chat_bp.route('/chats/<int:chat_id>', methods=['PUT'])
+@jwt_required()
 def update_chat(chat_id):
     chat = Chat.query.get_or_404(chat_id)
     data = request.get_json()
     if not data:
-        abort(400, "Missing JSON body")
-    if "class_id" in data:
-        chat.class_id = data["class_id"]
-    if "sender_id" in data:
-        chat.sender_id = data["sender_id"]
-    if "message" in data:
-        chat.message = data["message"]
-    if "timestamp" in data:
-        try:
-            chat.timestamp = datetime.fromisoformat(data["timestamp"])
-        except ValueError:
-            abort(400, "Invalid timestamp format. Must be ISO8601.")
+        return jsonify({"msg": "No input provided"}), 400
+    if 'message' in data:
+        chat.message = data['message']
     db.session.commit()
-    return jsonify(serialize_chat(chat)), 200
+    return jsonify({"msg": "Chat updated"}), 200
 
 @chat_bp.route('/chats/<int:chat_id>', methods=['DELETE'])
+@jwt_required()
 def delete_chat(chat_id):
     chat = Chat.query.get_or_404(chat_id)
     db.session.delete(chat)
     db.session.commit()
-    return jsonify({"message": "Chat record deleted successfully"}), 200
+    return jsonify({"msg": "Chat deleted"}), 200
