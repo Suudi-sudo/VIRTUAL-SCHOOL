@@ -111,14 +111,22 @@ def login():
 
     return jsonify({"msg": "Bad email or password."}), 401
 
-@user_bp.route("/google/login",)
+@user_bp.route("/google/login", methods=["POST"])
+
 def google_login():
-    """Initiate Google OAuth flow."""
-    # This depends on how you have set up your OAuth library.
-    # Example (pseudocode):
-    # redirect_uri = url_for('user_bp.google_callback', _external=True)
-    # return oauth.google.authorize_redirect(redirect_uri)
-    return jsonify({"msg": "Google login endpoint not fully implemented in this snippet."}), 501
+    data = request.get_json()
+    token = data.get("id_token")
+    try:
+        id_info = id_token.verify_oauth2_token(token, google_requests.Request(), GOOGLE_CLIENT_ID)
+        email = id_info["email"]
+        user = User.query.filter_by(email=email).first()
+        if not user:
+            user = User(username=id_info["name"], email=email, role="student")
+            db.session.add(user)
+            db.session.commit()
+        return login_user(user)
+    except Exception:
+        return jsonify({"msg": "Google authentication failed."}), 400
 
 @user_bp.route("/google/callback")
 def google_callback():
