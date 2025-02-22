@@ -110,8 +110,9 @@ def login():
         return login_user(user)
 
     return jsonify({"msg": "Bad email or password."}), 401
-# Google Login
+
 @user_bp.route("/google/login", methods=["POST"])
+
 def google_login():
     data = request.get_json()
     token = data.get("id_token")
