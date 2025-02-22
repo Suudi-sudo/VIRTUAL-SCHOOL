@@ -100,15 +100,37 @@
     margin: 100px;
   }
   
-  .google-login img {
-    width: 40px;
-    height: 20px;
-    background-image: url(../../google-logo.png);
+  body {
+    background-color: #fff;
   }
   
-  .google-login:hover {
-    background: #e0e0e0;
+  .google-btn {
+    background: #fff;
+    color: #000;
+    border: 1px solid #ddd;
+    font-weight: bold;
+    padding: 10px;
   }
+  
+  .google-btn:hover {
+    background: #f8f8f8;
+  }
+  
+  .login-btn {
+    background: black;
+    color: white;
+    border: none;
+    padding: 10px;
+  }
+  
+  .login-btn:hover {
+    background: #333;
+  }
+  
+  p {
+    color: #666;
+  }
+  
   
   /* Animations */
   @keyframes fadeIn {

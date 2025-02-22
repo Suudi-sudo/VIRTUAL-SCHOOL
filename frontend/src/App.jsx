@@ -9,11 +9,11 @@ import Signup from './pages/auth/Signup';
 import StudentDashboard from './pages/dashboard/StudentDashboard';
 import TeacherDashboard from './pages/dashboard/TeacherDashboard';
 import OwnerDashboard from './pages/dashboard/OwnerDashboard';
-// import StudentProfile from './pages/profile/StudentProfile';
-// import TeacherProfile from './pages/profile/TeacherProfile';
-// import OwnerProfile from './pages/profile/OwnerProfile';
+// import StudentProfile from "./pages/student/StudentProfile.jsx";
+// import TeacherProfile from "./pages/teacher/TeacherProfile.jsx";
+// import OwnerProfile from "./pages/owner/OwnerProfile.jsx";
 import StudentChat from './pages/chat/StudentChat';
-// ... Import other pages as needed
+import "bootstrap/dist/css/bootstrap.min.css"; // Ensure Bootstrap is correctly imported
 
 const App = () => {
   return (
@@ -34,7 +34,7 @@ const App = () => {
               <Route path="/dashboard/teacher" element={<TeacherDashboard />} />
               <Route path="/dashboard/owner" element={<OwnerDashboard />} />
 
-              {/* Profile Routes */}
+              {/* Profile Routes - Fixed Paths */}
               {/* <Route path="/profile/student" element={<StudentProfile />} />
               <Route path="/profile/teacher" element={<TeacherProfile />} />
               <Route path="/profile/owner" element={<OwnerProfile />} /> */}
