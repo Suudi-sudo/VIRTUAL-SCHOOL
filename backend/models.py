@@ -3,7 +3,7 @@ from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Text, Uniq
 from sqlalchemy.orm import relationship
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
-from sqlalchemy.dialects.postgresql import JSON 
+
 db = SQLAlchemy()
 
 class User(db.Model):
@@ -157,10 +157,13 @@ class ExamSubmission(db.Model):
     id = Column(Integer, primary_key=True)
     exam_id = Column(Integer, ForeignKey("exams.id"), nullable=False)
     student_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    answers_json = Column(JSON, nullable=False)  # ✅ Changed from Text to JSON
+    
+    # Store answers as a text column (you can serialize/deserialize JSON in your application)
+    # answers_text = Column(Text, nullable=False)  # Store JSON as text
+    answers_json = db.Column(db.String, nullable=False) 
     score = Column(Integer, nullable=True)
-    submitted_at = Column(DateTime, default=datetime.utcnow)  # ✅ Added timestamp
-
+    submitted_at = Column(DateTime, default=datetime.utcnow)  # Automatically sets the timestamp
+    
     # Unique constraint to prevent multiple submissions
     __table_args__ = (UniqueConstraint('exam_id', 'student_id', name='unique_exam_submission'),)
 
@@ -170,6 +173,7 @@ class ExamSubmission(db.Model):
 
     def __repr__(self):
         return f"<ExamSubmission Exam {self.exam_id} - Student {self.student_id}>"
+
 
 class Chat(db.Model):
    """Stores class-based messages."""
