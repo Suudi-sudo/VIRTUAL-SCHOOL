@@ -1,9 +1,9 @@
 from datetime import datetime
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Text
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Text, UniqueConstraint
 from sqlalchemy.orm import relationship
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
-
+from sqlalchemy.dialects.postgresql import JSON 
 db = SQLAlchemy()
 
 class User(db.Model):
@@ -151,21 +151,25 @@ class Exam(db.Model):
        return f"<Exam {self.exam_title} - {self.status}>"
 
 class ExamSubmission(db.Model):
-   """Tracks student answers."""
-   __tablename__ ="exam_submissions"
+    """Tracks student answers."""
+    __tablename__ = "exam_submissions"
 
-   id=Column(Integer ,primary_key=True )
-   exam_id=Column(Integer ,ForeignKey ("exams.id") ,nullable=False )
-   student_id=Column(Integer ,ForeignKey ("users.id") ,nullable=False )
-   answers_json=Column(Text ,nullable=False )  # Store answers in JSON format
-   score=Column(Integer ,nullable=True )
+    id = Column(Integer, primary_key=True)
+    exam_id = Column(Integer, ForeignKey("exams.id"), nullable=False)
+    student_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    answers_json = Column(JSON, nullable=False)  # ✅ Changed from Text to JSON
+    score = Column(Integer, nullable=True)
+    submitted_at = Column(DateTime, default=datetime.utcnow)  # ✅ Added timestamp
 
-   # Relationships
-   exam=relationship ("Exam" ,back_populates ="submissions")
-   student=relationship ("User" ,back_populates ="exam_submissions" ,foreign_keys =[student_id])
+    # Unique constraint to prevent multiple submissions
+    __table_args__ = (UniqueConstraint('exam_id', 'student_id', name='unique_exam_submission'),)
 
-   def __repr__(self):
-       return f"<ExamSubmission Exam {self.exam_id} - Student {self.student_id}>"
+    # Relationships
+    exam = relationship("Exam", back_populates="submissions")
+    student = relationship("User", back_populates="exam_submissions", foreign_keys=[student_id])
+
+    def __repr__(self):
+        return f"<ExamSubmission Exam {self.exam_id} - Student {self.student_id}>"
 
 class Chat(db.Model):
    """Stores class-based messages."""
