@@ -111,7 +111,7 @@ def login():
 
     return jsonify({"msg": "Bad email or password."}), 401
 
-@user_bp.route("/google/login")
+@user_bp.route("/google/login",)
 def google_login():
     """Initiate Google OAuth flow."""
     # This depends on how you have set up your OAuth library.
