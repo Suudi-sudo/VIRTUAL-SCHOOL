@@ -9,7 +9,6 @@ const OwnerDashboard = () => {
   const links = [
     { path: '/owner/manageschools', label: 'Manage Schools' },
     { path: '/owner/manageteachers', label: 'Manage Teachers' },
-    { path: '/owner/viewstudents', label: 'View Students' },
     { path: '/owner/profile', label: 'Profile' },
   ];
 

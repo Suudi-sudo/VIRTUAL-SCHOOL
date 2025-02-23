@@ -12,7 +12,8 @@ import OwnerDashboard from './pages/dashboard/OwnerDashboard';
 // import StudentProfile from "./pages/student/StudentProfile.jsx";
 // import TeacherProfile from "./pages/teacher/TeacherProfile.jsx";
 // import OwnerProfile from "./pages/owner/OwnerProfile.jsx";
-import StudentChat from './pages/chat/StudentChat';
+import StudentChat from './pages/student/ClassChat/StudentChatPage';
+import TeacherChat from './pages/teacher/ClassChat/TeacherChatPage';
 import "bootstrap/dist/css/bootstrap.min.css"; // Ensure Bootstrap is correctly imported
 
 const App = () => {
@@ -26,7 +27,7 @@ const App = () => {
               <Route path="/" element={<Homepage />} />
 
               {/* Authentication Routes */}
-              <Route path="/login" element={<Login />} />
+              <Route path="/login" element={<Login />} /> 
               <Route path="/signup" element={<Signup />} />
 
               {/* Dashboard Routes */}
@@ -41,6 +42,7 @@ const App = () => {
 
               {/* Chat Routes */}
               <Route path="/chat/student" element={<StudentChat />} />
+              <Route path="/chat/teacher" element={<TeacherChat />} />
               
               {/* Add more routes as needed */}
             </Routes>

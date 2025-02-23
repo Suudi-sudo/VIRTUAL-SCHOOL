@@ -71,11 +71,11 @@ const Login = () => {
   };
 
   return (
-    <Container className="d-flex justify-content-center align-items-center min-vh-100">
+    <Container fluid className="d-flex justify-content-center align-items-center vh-100">
       <Row className="w-100 justify-content-center">
-        <Col xs={12} md={6} lg={4}>
+        <Col xs={12} md={6} lg={4} className="shadow p-4 rounded bg-white">
           <div className="text-center">
-            <Button className="w-100 google-btn" onClick={handleGoogleLogin}>
+            <Button className="w-100 google-btn mb-3" onClick={handleGoogleLogin}>
               <img
                 src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Google_%22G%22_Logo.svg/512px-Google_%22G%22_Logo.svg.png"
                 alt="Google Logo"
