@@ -1,8 +1,11 @@
 "use client";
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 function Home() {
+  const navigate = useNavigate();
+
   return (
     <div className="position-relative min-vh-100">
       {/* Background Image with Overlay */}
@@ -41,58 +44,32 @@ function Home() {
 
         {/* Cards Section */}
         <div className="row mt-5">
-          <div className="col-md-6 col-lg-3 mb-4">
-            <div className="card bg-dark text-white h-100">
-              <div className="card-body text-center">
-                <i className="fas fa-check-circle fa-2x mb-3"></i>
-                <h5 className="card-title">Engaging Virtual Classrooms</h5>
-                <p className="card-text">
-                  Live interactive sessions for enhanced learning experience
-                </p>
+          {[
+            { title: "Engaging Virtual Classrooms", text: "Live interactive sessions for enhanced learning experience" },
+            { title: "Flexible Learning", text: "Self-paced options to fit your schedule" },
+            { title: "Comprehensive Support", text: "Dedicated teachers available for guidance" },
+            { title: "Safe Learning Environment", text: "Comfortable learning from your own home" },
+          ].map((card, index) => (
+            <div key={index} className="col-md-6 col-lg-3 mb-4">
+              <div className="card bg-dark text-white h-100">
+                <div className="card-body text-center">
+                  <i className="fas fa-check-circle fa-2x mb-3"></i>
+                  <h5 className="card-title">{card.title}</h5>
+                  <p className="card-text">{card.text}</p>
+                </div>
               </div>
             </div>
-          </div>
-
-          <div className="col-md-6 col-lg-3 mb-4">
-            <div className="card bg-dark text-white h-100">
-              <div className="card-body text-center">
-                <i className="fas fa-check-circle fa-2x mb-3"></i>
-                <h5 className="card-title">Flexible Learning</h5>
-                <p className="card-text">
-                  Self-paced options to fit your schedule
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="col-md-6 col-lg-3 mb-4">
-            <div className="card bg-dark text-white h-100">
-              <div className="card-body text-center">
-                <i className="fas fa-check-circle fa-2x mb-3"></i>
-                <h5 className="card-title">Comprehensive Support</h5>
-                <p className="card-text">
-                  Dedicated teachers available for guidance
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="col-md-6 col-lg-3 mb-4">
-            <div className="card bg-dark text-white h-100">
-              <div className="card-body text-center">
-                <i className="fas fa-check-circle fa-2x mb-3"></i>
-                <h5 className="card-title">Safe Learning Environment</h5>
-                <p className="card-text">
-                  Comfortable learning from your own home
-                </p>
-              </div>
-            </div>
-          </div>
+          ))}
         </div>
 
         {/* Action Button */}
         <div className="text-center mt-4">
-          <button className="btn btn-primary btn-lg">GET STARTED</button>
+          <button
+            className="btn btn-primary btn-lg"
+            onClick={() => navigate("/register")}
+          >
+            GET STARTED
+          </button>
         </div>
       </div>
     </div>
