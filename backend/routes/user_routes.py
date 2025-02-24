@@ -287,3 +287,15 @@ def get_users():
         "pages": users_query.pages,
         "current_page": page_num
     }), 200
+
+@user_bp.route('/logout', methods=['POST'])
+@jwt_required()
+def logout():
+    """
+    Log out a user.
+
+    Note: In a stateless JWT system, logout is typically handled on the client side by simply removing the token.
+    If you implement token blacklisting, you could add the token to a blacklist here.
+    """
+    # For now, we'll simply return a success message.
+    return jsonify({"msg": "Logout successful. Please remove your token from storage."}), 200
