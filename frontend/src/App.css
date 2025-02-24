@@ -1,42 +1,223 @@
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
+/* Navbar Styling */
+body {
+  margin: 0;
+  padding: 0;
+  font-family: Arial, sans-serif;
+  background-image: url(./image.png);
+  background-repeat: no-repeat;
+  background-size: cover;
+ 
+}
+.navbar {
+  display: flex;
+
+  align-items: right;
+  padding: 1rem 2rem;
+  margin: 20px;
+  background: linear-gradient(135deg, #101455, #6080df);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  border-radius: 25px;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+/* Navbar Logo */
+.navbar-logo {
+  display: flex;
+  align-items: right;
+  text-decoration: none;
+  
+}
+
+.navbar-logo-img {
+  height: 50px;
+  background-image: url(./image.png);
+  width: 50px;
+  border-radius: 50%;
+  border: 2px solid white;
+}
+
+.navbar-title {
+  font-size: 1.7rem;
+  color: white;
+  margin-left: 1rem;
+  font-family: "Poppins", sans-serif;
+  font-weight: bold;
+  letter-spacing: 1px;
+  transition: transform 0.3s ease-in-out;
+  justify-content: left;
+}
+
+.navbar-title:hover {
+  transform: scale(1.1);
+  color: #FFD700;
+}
+
+/* Navbar Links */
+.navbar-links {
+  display: flex;
+  justify-content: end;
+  text-align: right;
+  list-style: none;
+  gap: 0rem;
+
+  
+  
+  
+}
+
+.navbar-links li {
+  font-size: 1.1rem;
+  font-weight: 600;
+  transition: transform 0.2s ease-in-out;
+}
+
+.navbar-links li:hover {
+  transform: translateY(-2px);
+}
+
+.navbar-links a {
+  color: white;
+  text-decoration: none;
+  padding: 10px 15px;
+  border-radius: 10px;
+  transition: background 0.3s ease-in-out, color 0.3s ease-in-out;
+}
+
+.navbar-links a:hover {
+  background: rgba(255, 255, 255, 0.2);
+  color: #FFD700;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .navbar {
+    flex-direction: column;
+    padding: 1rem;
+  }
+
+  .navbar-links {
+    flex-direction: column;
+    gap: 1rem;
+    text-align: center;
+  }
+
+  .navbar-title {
+    margin-bottom: 1rem;
+  }
+}
+
+
+
+
+/* Form container */
+.form-container {
+  background-color: rgba(255, 255, 255, 0.1);
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+  width: 350px;
   text-align: center;
+  backdrop-filter: blur(10px);
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+/* Form title */
+.form-container h2 {
+  color: #fff;
+  margin-bottom: 20px;
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+/* Input fields */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+select {
+  width: 20%;
+  padding: 12px;
+  margin: 10px 0;
+  border: none;
+  justify-content: center;
+  border-radius: 6px;
+  background-color: rgba(255, 255, 255, 0.2);
+  color: #fff;
+  font-size: 14px;
+  outline: none;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
+input::placeholder {
+  color: #1f1b1b;
 }
 
-.card {
-  padding: 2em;
+/* Dropdown styling */
+select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  border-radius: 10px;
 }
 
-.read-the-docs {
-  color: #888;
+/* Register button */
+button {
+  width: 20%;
+  padding: 12px;
+  background: linear-gradient(90deg, #6a11cb, #2575fc);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 16px;
+  cursor: pointer;
+  margin-top: 10px;
+  transition: background 0.3s ease;
 }
+
+button:hover {
+  background: linear-gradient(90deg, #2575fc, #6a11cb);
+}
+
+/* Divider */
+.divider {
+  margin: 20px 0;
+  color: #ccc;
+  font-size: 14px;
+}
+
+/* Google button */
+.google-btn {
+  width: 100%;
+  padding: 12px;
+  background-color: #fff;
+  color: #444;
+  border: none;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.google-btn img {
+  width: 20px;
+  margin-right: 10px;
+}
+
+.google-btn:hover {
+  background-color: #f0f0f0;
+}
+
+/* Sign-in link */
+p {
+  margin-top: 15px;
+  color: #ddd;
+  font-size: 14px;
+}
+
+a {
+  color: #fff;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+} 
