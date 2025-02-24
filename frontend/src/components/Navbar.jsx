@@ -1,19 +1,21 @@
-import React, { useContext } from 'react';
-import { AuthContext } from '../context/AuthContext';
+import { Link } from "react-router-dom";
+import "../App"; // Import the CSS
 
 const Navbar = () => {
-  const { user, logout } = useContext(AuthContext);
-
   return (
-    <nav>
-      {user ? (
-        <>
-          <span>Welcome, {user.email}</span>
-          <button onClick={logout}>Logout</button>
-        </>
-      ) : (
-        <a href="/login">Login</a>
-      )}
+    <nav className="navbar">
+      <Link to="/" className="navbar-logo">
+        <img src="/logo.png" alt="Logo" className="navbar-logo-img" />
+        <span className="navbar-title">VIRTUAL SCHOOL</span>
+      </Link>
+
+      <ul className="navbar-links">
+        <li><Link to="/">Home</Link></li>
+        <li><Link to="/login">Login</Link></li>
+        <li><Link to="/register">Register</Link></li>
+        <li><Link to="/logout">Logout</Link></li>
+       
+      </ul>
     </nav>
   );
 };

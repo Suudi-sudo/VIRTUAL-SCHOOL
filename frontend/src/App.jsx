@@ -1,56 +1,26 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { AuthProvider } from './context/AuthContext';
-import { SchoolProvider } from './context/SchoolContext';
-import { ChatProvider } from './context/ChatContext';
-import Homepage from './pages/Homepage/Homepage';
-import Login from './pages/auth/Login';
-import Signup from './pages/auth/Signup';
-import StudentDashboard from './pages/dashboard/StudentDashboard';
-import TeacherDashboard from './pages/dashboard/TeacherDashboard';
-import OwnerDashboard from './pages/dashboard/OwnerDashboard';
-// import StudentProfile from "./pages/student/StudentProfile.jsx";
-// import TeacherProfile from "./pages/teacher/TeacherProfile.jsx";
-// import OwnerProfile from "./pages/owner/OwnerProfile.jsx";
-import StudentChat from './pages/student/ClassChat/StudentChatPage';
-import TeacherChat from './pages/teacher/ClassChat/TeacherChatPage';
-import "bootstrap/dist/css/bootstrap.min.css"; // Ensure Bootstrap is correctly imported
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import Navbar from "./components/Navbar";
+import Home from "./pages/Home";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
+import Logout from "./pages/Logout";
 
-const App = () => {
-  return (
-    <AuthProvider>
-      <SchoolProvider>
-        <ChatProvider>
-          <Router>
+import "./App.css"; // Import the CSS file
+
+
+function App() {
+    return (
+        <Router className= 'app'>
+            <Navbar />
             <Routes>
-              {/* Homepage Route */}
-              <Route path="/" element={<Homepage />} />
-
-              {/* Authentication Routes */}
-              <Route path="/login" element={<Login />} /> 
-              <Route path="/signup" element={<Signup />} />
-
-              {/* Dashboard Routes */}
-              <Route path="/dashboard/student" element={<StudentDashboard />} />
-              <Route path="/dashboard/teacher" element={<TeacherDashboard />} />
-              <Route path="/dashboard/owner" element={<OwnerDashboard />} />
-
-              {/* Profile Routes - Fixed Paths */}
-              {/* <Route path="/profile/student" element={<StudentProfile />} />
-              <Route path="/profile/teacher" element={<TeacherProfile />} />
-              <Route path="/profile/owner" element={<OwnerProfile />} /> */}
-
-              {/* Chat Routes */}
-              <Route path="/chat/student" element={<StudentChat />} />
-              <Route path="/chat/teacher" element={<TeacherChat />} />
-              
-              {/* Add more routes as needed */}
+                <Route path="/" element={<Home />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/register" element={<Register />} />
+                <Route path="/logout" element={<Logout />} />
+               
             </Routes>
-          </Router>
-        </ChatProvider>
-      </SchoolProvider>
-    </AuthProvider>
-  );
-};
+        </Router>
+    );
+}
 
 export default App;

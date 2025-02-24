@@ -58,7 +58,7 @@ def create_app():
     JWTManager(app)
 
     # ✅ Enable CORS for All Routes
-    CORS(app, resources={r"/*": {"origins": "http://localhost:3000"}})
+    CORS(app)
 
     # Allow insecure transport for local development
     os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
