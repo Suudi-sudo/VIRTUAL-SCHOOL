@@ -13,22 +13,7 @@ const Navbar = () => {
       </Link>
 
       <ul className="navbar-links">
-        {student ? (
-          <>
-            <li><Link to="/logout">Logout</Link></li>
-            <li><Link to="/Exam">Exam</Link></li>
-            <li><Link to="/GradeSummary">Grades</Link></li>
-            <li><Link to="/Chat">Chat</Link></li>
-            <li><Link to="/StudyMaterial">Study Material</Link></li>   
-            <li><Link to="/Profile">Profile</Link></li>
-          </>
-        ) : (
-          <>
-            <li><Link to="/">Home</Link></li>
-            <li><Link to="/login">Login</Link></li>
-            <li><Link to="/register">Register</Link></li>
-          </>
-        )}
+
       </ul>
     </nav>
   );
