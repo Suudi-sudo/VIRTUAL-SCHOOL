@@ -5,6 +5,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 
 import "./App.css"; // Import the CSS file
+import EducatorDashboard from "./pages/Educator/EducatorDashboard";
 
 
 function App() {
@@ -15,7 +16,7 @@ function App() {
                 <Route path="/" element={<Home />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
-
+                <Route path="/educator" element={<EducatorDashboard />} />
             </Routes>
         </Router>
     );
