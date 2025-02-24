@@ -3,9 +3,7 @@ body {
   margin: 0;
   padding: 0;
   font-family: Arial, sans-serif;
-  background-image: url(./image.png);
-  background-repeat: no-repeat;
-  background-size: cover;
+background-color: #444;
  
 }
 .navbar {
@@ -14,7 +12,7 @@ body {
   align-items: right;
   padding: 1rem 2rem;
   margin: 20px;
-  background: linear-gradient(135deg, #101455, #6080df);
+  background: linear-gradient(135deg, #101455, #232325);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
   border-radius: 25px;
   position: sticky;
