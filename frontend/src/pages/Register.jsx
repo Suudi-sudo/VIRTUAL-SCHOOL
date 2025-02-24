@@ -100,7 +100,7 @@ const Register = () => {
                             <input
                                 type="password"
                                 name="password"
-                                value={formData.password}
+                                value={formData.password}cd
                                 onChange={handleChange}
                                 required
                                 className="w-full p-3 rounded-lg border-none focus:ring-4 focus:ring-blue-300 bg-white/80 text-gray-800 placeholder-gray-600"
