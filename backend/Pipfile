@@ -1,0 +1,29 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+alembic = "*"
+psycopg2-binary = "*"
+pytest = "*"
+flask-migrate = "*"
+flask-sqlalchemy = "*"
+python-dotenv = "*"
+flask = "*"
+flask-jwt-extended = "*"
+flask-mail = "*"
+authlib = "*"
+google-auth = "*"
+google-auth-httplib2 = "*"
+cloudinary = "*"
+requests = "*"
+google-auth-oauthlib = "*"
+google-api-python-client = "*"
+flask-cors = "*"
+flask-socketio = "*"
+
+[dev-packages]
+
+[requires]
+python_version = "3.8"
