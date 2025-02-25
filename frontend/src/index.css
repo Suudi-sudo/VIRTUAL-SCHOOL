@@ -1,3 +1,13 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+body {
+    background-color: #f8f9fa;
+  }
+  
+  .nav-link {
+    cursor: pointer;
+  }
+  
+  .nav-link:hover {
+    text-decoration: none;
+    background-color: #343a40;
+  }
+  

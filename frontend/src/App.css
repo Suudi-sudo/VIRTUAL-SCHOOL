@@ -228,6 +228,7 @@ a:hover {
   text-decoration: underline;
 } 
 
+
 .grade-summary {
   padding: 2rem;
   background-color: white;
@@ -476,3 +477,10 @@ button:hover {
   width: 20px;
   height: 20px;
  }
+.sidebar {
+  width: 250px;
+  background-color: #343a40; 
+  color: #fff;
+  height: 100vh;
+}
+
