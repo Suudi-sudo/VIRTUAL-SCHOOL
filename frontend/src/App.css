@@ -219,3 +219,10 @@ a {
 a:hover {
   text-decoration: underline;
 } 
+
+.sidebar {
+  width: 250px;
+  background-color: #343a40; 
+  color: #fff;
+  height: 100vh;
+}
