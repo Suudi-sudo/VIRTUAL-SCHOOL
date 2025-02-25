@@ -12,6 +12,7 @@ from dotenv import load_dotenv
 from google_auth_oauthlib.flow import Flow
 from googleapiclient.discovery import build
 from werkzeug.security import generate_password_hash
+from flask_socketio import SocketIO 
 from models import db, User  # Ensure User model is imported
 
 # Load environment variables
@@ -20,6 +21,7 @@ load_dotenv()
 # Initialize extensions
 mail = Mail()
 migrate = Migrate()
+socketio = SocketIO(cors_allowed_origins="*")
 
 def create_app():
     """Factory function to create and configure the Flask app."""
@@ -56,7 +58,7 @@ def create_app():
     mail.init_app(app)
     migrate.init_app(app, db)
     JWTManager(app)
-
+    socketio.init_app(app) 
     # ✅ Enable CORS for All Routes
     CORS(app)
 
@@ -135,11 +137,24 @@ def create_app():
             'name': user_info['name'],
             'picture': user_info['picture']
         }
+      # ✅ WebSocket Handlers
+    @socketio.on('connect')
+    def handle_connect():
+        print("✅ Client connected")
 
-    # ✅ Test Route to Check CORS is Working
+    @socketio.on('disconnect')
+    def handle_disconnect():
+        print("❌ Client disconnected")
+
+    @socketio.on('message')
+    def handle_message(data):
+        print(f"📩 Received message: {data}")
+        socketio.emit('response', {'message': 'Message received!'})
+    
+   # ✅ Test Route to Check API
     @app.route('/test')
     def test_api():
-        return jsonify({"message": "CORS is working!"})
+        return jsonify({"message": "CORS & WebSockets are working!"})
 
     # Print loaded environment variables
     print("\n✅ Environment Variables Loaded:")
@@ -167,4 +182,4 @@ def create_app():
 app = create_app()
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    socketio.run(app, debug=True)  # ✅ Run with SocketIO

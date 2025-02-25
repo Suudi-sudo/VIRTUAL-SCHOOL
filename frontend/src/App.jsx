@@ -4,6 +4,9 @@ import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 
+import StudentDashboard from "./pages/StudentDashboard/Dashboard";
+
+
 import Dashboard from './pages/OwnersDashboard/Dashboard';
 import Students from './pages/OwnersDashboard/Students';
 import Teachers from './pages/OwnersDashboard/Teachers';
@@ -12,8 +15,10 @@ import CreateSchool from './pages/OwnersDashboard/CreateSchool';
 // import Sidebar from "./pages/OwnersDashboard/Sidebar";
 import School from "./pages/OwnersDashboard/School";
 
+
 import "./App.css"; // Import the CSS file
 import EducatorDashboard from "./pages/Educator/EducatorDashboard";
+import ExamPage from "./pages/StudentDashboard/Exam";
 
 
 function App() {
@@ -34,6 +39,10 @@ function App() {
                 <Route path="/schools" element={<School />} />
 
                 <Route path="/educator" element={<EducatorDashboard />} />
+
+                <Route path="/student" element={<StudentDashboard />} />
+                <Route path="/exam" element={<ExamPage/>} />
+
 
             </Routes>
         </Router>

@@ -21,6 +21,7 @@ requests = "*"
 google-auth-oauthlib = "*"
 google-api-python-client = "*"
 flask-cors = "*"
+flask-socketio = "*"
 
 [dev-packages]
 
