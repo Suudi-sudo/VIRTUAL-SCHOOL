@@ -136,8 +136,8 @@ const Register = () => {
                       className="form-select form-select-lg"
                     >
                       <option value="student">Student</option>
-                      <option value="teacher">Teacher</option>
-                      <option value="admin">Admin</option>
+                      <option value="teacher">Educator</option>
+                      <option value="admin">Owner</option>
                     </select>
                   </div>
 
