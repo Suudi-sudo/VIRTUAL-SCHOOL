@@ -1,4 +1,5 @@
 import React, { createContext, useState } from "react";
+import { useNavigate } from "react-router-dom"; // ✅ Import useNavigate
 import "bootstrap/dist/css/bootstrap.min.css";
 
 // Create UserContext
@@ -14,6 +15,8 @@ const Register = () => {
     role: "student",
   });
   const [message, setMessage] = useState("");
+
+  const navigate = useNavigate(); // ✅ Hook for redirection
 
   // Handle input change
   const handleChange = (e) => {
@@ -36,7 +39,17 @@ const Register = () => {
 
       if (response.ok) {
         setUser(data);
-        setMessage("Registration successful! You can now login.");
+        localStorage.setItem("user", JSON.stringify(data)); // ✅ Save user to localStorage
+        setMessage("Registration successful! Redirecting...");
+
+        // ✅ Redirect based on role
+        setTimeout(() => {
+          if (data.role === "teacher") {
+            navigate("/educator/dashboard");
+          } else {
+            navigate("/");
+          }
+        }, 1500); // Small delay for user feedback
       } else {
         setMessage(data.msg);
       }
