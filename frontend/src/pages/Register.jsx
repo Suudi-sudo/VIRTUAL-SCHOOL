@@ -127,7 +127,7 @@ const Register = () => {
                     />
                   </div>
 
-                  <div className="mb-3">
+                  {/* <div className="mb-3">
                     <label className="form-label">Role</label>
                     <select
                       name="role"
@@ -139,7 +139,7 @@ const Register = () => {
                       <option value="teacher">Educator</option>
                       <option value="admin">Owner</option>
                     </select>
-                  </div>
+                  </div> */}
 
                   <button type="submit" className="btn btn-primary btn-lg w-100 mb-3">
                     Register Now 🚀

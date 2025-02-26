@@ -6,13 +6,13 @@ from flask import Flask, redirect, request, session, jsonify
 from flask_migrate import Migrate
 from flask_jwt_extended import JWTManager
 from flask_mail import Mail
-from flask_cors import CORS  # ✅ Import CORS
+from flask_cors import CORS  # Enable CORS
 import cloudinary
-from dotenv import load_dotenv  
+from dotenv import load_dotenv
 from google_auth_oauthlib.flow import Flow
 from googleapiclient.discovery import build
 from werkzeug.security import generate_password_hash
-from flask_socketio import SocketIO 
+from flask_socketio import SocketIO
 from models import db, User  # Ensure User model is imported
 
 # Load environment variables
@@ -58,9 +58,8 @@ def create_app():
     mail.init_app(app)
     migrate.init_app(app, db)
     JWTManager(app)
-    socketio.init_app(app) 
-    # ✅ Enable CORS for All Routes
-    CORS(app)
+    socketio.init_app(app)
+    CORS(app)  # Enable CORS for all routes
 
     # Allow insecure transport for local development
     os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
@@ -76,68 +75,75 @@ def create_app():
     except json.JSONDecodeError as e:
         raise ValueError(f"⚠️ Error parsing GOOGLE_CLIENT_SECRET_JSON: {e}")
 
+    # Initialize Google OAuth flow
     flow = Flow.from_client_config(
         client_secrets_dict,
-        scopes=["https://www.googleapis.com/auth/userinfo.profile", 
-                "https://www.googleapis.com/auth/userinfo.email", 
+        scopes=["https://www.googleapis.com/auth/userinfo.profile",
+                "https://www.googleapis.com/auth/userinfo.email",
                 "openid"],
         redirect_uri="http://127.0.0.1:5000/google_login/callback"
     )
 
+    # Helper function to generate a random password
     def generate_random_password(length=12):
         characters = string.ascii_letters + string.digits + string.punctuation
         return ''.join(random.choice(characters) for _ in range(length))
 
+    # Google authorization route
     @app.route("/authorize_google")
     def authorize_google():
         try:
-            authorization_url, state = flow.authorization_url()
-            session["state"] = state  # Ensure SECRET_KEY is set to use session
+            authorization_url, state = flow.authorization_url(prompt='consent')
+            session["state"] = state  # Store state in session
             return redirect(authorization_url)
         except Exception as e:
             return f"Error during Google authorization: {str(e)}", 500
 
+    # Google callback route
     @app.route("/google_login/callback")
     def google_callback():
         try:
+            # Fetch the token using the authorization response
             flow.fetch_token(authorization_response=request.url)
             credentials = flow.credentials
-            session['credentials'] = credentials_to_dict(credentials)
 
-            user_info = get_user_info(credentials)
+            # Get user info from Google
+            user_info_service = build('oauth2', 'v2', credentials=credentials)
+            user_info = user_info_service.userinfo().get().execute()
+
+            # Check if the user already exists
             user = User.query.filter_by(email=user_info['email']).first()
-            
             if not user:
-                random_password = generate_random_password()
-                hashed_password = generate_password_hash(random_password)
-                user = User(name=user_info['name'], email=user_info['email'], password=hashed_password)
+                # Create a new user
+                user = User(
+                    username=user_info.get('name'),  # Use 'username' instead of 'name'
+                    email=user_info['email'],
+                    profile_pic=user_info.get('picture'),
+                    google_id=user_info.get('sub'),
+                    role='user'  # Set a default role
+                )
                 db.session.add(user)
                 db.session.commit()
-            
+
+            # Log the user in (e.g., set session or return JWT token)
+            session['user_id'] = user.id
             session['user_info'] = user_info
-            return redirect("http://127.0.0.1:5000/spaces")
+            return redirect("http://localhost:5173/login")
         except Exception as e:
             return f"Error during Google callback: {str(e)}", 500
 
+    # Helper function to convert credentials to a dictionary
     def credentials_to_dict(credentials):
         return {
             'token': credentials.token,
             'refresh_token': credentials.refresh_token,
             'token_uri': credentials.token_uri,
-            'client_id': credentials.client_id,
+            'client_id': credentials.client_id, 
             'client_secret': credentials.client_secret,
             'scopes': credentials.scopes
         }
 
-    def get_user_info(credentials):
-        service = build('oauth2', 'v2', credentials=credentials)
-        user_info = service.userinfo().get().execute()
-        return {
-            'email': user_info['email'],
-            'name': user_info['name'],
-            'picture': user_info['picture']
-        }
-      # ✅ WebSocket Handlers
+    # WebSocket Handlers
     @socketio.on('connect')
     def handle_connect():
         print("✅ Client connected")
@@ -150,8 +156,8 @@ def create_app():
     def handle_message(data):
         print(f"📩 Received message: {data}")
         socketio.emit('response', {'message': 'Message received!'})
-    
-   # ✅ Test Route to Check API
+
+    # Test Route to Check API
     @app.route('/test')
     def test_api():
         return jsonify({"message": "CORS & WebSockets are working!"})
@@ -182,4 +188,4 @@ def create_app():
 app = create_app()
 
 if __name__ == '__main__':
-    socketio.run(app, debug=True)  # ✅ Run with SocketIO
+    socketio.run(app, debug=True)  # Run with SocketIO
