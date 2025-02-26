@@ -1,193 +1,94 @@
-import React, { useState, useEffect } from "react";
-import axios from "axios";
 
-const Resources = () => {
+// React: resources.jsx
+"use client";
+import React, { useState } from "react";
+
+function MainComponent() {
   const [resources, setResources] = useState([]);
-  const [file, setFile] = useState(null);
-  const [description, setDescription] = useState("");
-  const [classId, setClassId] = useState("");
-  const [permissions, setPermissions] = useState("public"); // Default permission
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [showUploadModal, setShowUploadModal] = useState(false);
+  const [error, setError] = useState(null);
+  const [formData, setFormData] = useState({
+    class_id: "",
+    description: "",
+    permissions: "private",
+    file: null,
+  });
 
-  // Fetch resources from backend
-  useEffect(() => {
-    fetchResources();
-  }, [currentPage]);
-
-  const fetchResources = async () => {
-    try {
-      setLoading(true);
-      const res = await axios.get(`/api/educator/resources?page=${currentPage}`);
-      setResources(res.data.resources);
-      setTotalPages(res.data.pages);
-      setLoading(false);
-    } catch (error) {
-      console.error("Error fetching resources:", error);
-      setLoading(false);
-    }
+  const handleFileChange = (e) => {
+    setFormData({ ...formData, file: e.target.files[0] });
   };
 
-  // Upload new resource
-  const handleUpload = async (e) => {
-    e.preventDefault();
-    if (!file || !classId) {
-      alert("Please select a file and enter class ID.");
+  const handleFileUpload = async () => {
+    if (!formData.file || !formData.class_id || !formData.permissions) {
+      setError("All fields are required.");
       return;
     }
 
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("description", description);
-    formData.append("class_id", classId);
-    formData.append("permissions", permissions);
+    const data = new FormData();
+    data.append("file", formData.file);
+    data.append("class_id", formData.class_id);
+    data.append("description", formData.description);
+    data.append("permissions", formData.permissions);
 
     try {
       setLoading(true);
-      await axios.post("/api/educator/resources/upload", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
+      setError(null);
+      const token = localStorage.getItem('token');
+
+      const response = await fetch("http://localhost:5000/resources/upload", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+        body: data,
       });
-      alert("Resource uploaded successfully!");
-      setShowUploadModal(false);
-      fetchResources();
-    } catch (error) {
-      console.error("Error uploading resource:", error);
+
+      const result = await response.json();
+
+      if (!response.ok) throw new Error(result.msg || "Failed to upload");
+
+      setResources((prev) => [...prev, result]);
+      setIsModalOpen(false);
+      setFormData({ class_id: "", description: "", permissions: "private", file: null });
+    } catch (err) {
+      setError(err.message);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="container mx-auto p-6">
-      {/* Page Title & Upload Button */}
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-gray-800">📚 Educator Resources</h1>
-        <button
-          onClick={() => setShowUploadModal(true)}
-          className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition"
-        >
-          Upload Resource
-        </button>
+    <div className="max-w-7xl mx-auto">
+    <div className="flex flex-col md:flex-row md:items-center justify-between mb-8">
+      <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4 md:mb-0">Resources</h1>
       </div>
-
-      {/* Resources List */}
-      <div className="bg-white shadow-md rounded-lg overflow-hidden">
-        <table className="min-w-full border-collapse border border-gray-200">
-          <thead className="bg-gray-100">
-            <tr>
-              <th className="border p-3 text-left">📁 File</th>
-              <th className="border p-3 text-left">📖 Description</th>
-              <th className="border p-3 text-left">🎓 Class ID</th>
-              <th className="border p-3 text-left">🔐 Permissions</th>
-              <th className="border p-3 text-center">🔗 View</th>
-            </tr>
-          </thead>
-          <tbody>
-            {loading ? (
-              <tr>
-                <td colSpan="5" className="p-4 text-center">Loading...</td>
-              </tr>
-            ) : resources.length === 0 ? (
-              <tr>
-                <td colSpan="5" className="p-4 text-center text-gray-500">No resources uploaded yet.</td>
-              </tr>
-            ) : (
-              resources.map((res) => (
-                <tr key={res.id} className="border-b">
-                  <td className="p-3">{res.file_url.split('/').pop()}</td>
-                  <td className="p-3">{res.description || "No description"}</td>
-                  <td className="p-3">{res.class_id}</td>
-                  <td className="p-3">{res.permissions}</td>
-                  <td className="p-3 text-center">
-                    <a
-                      href={res.file_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-500 hover:underline"
-                    >
-                      Open
-                    </a>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
-
-      {/* Pagination */}
-      <div className="flex justify-center mt-4">
-        {Array.from({ length: totalPages }, (_, i) => (
-          <button
-            key={i + 1}
-            onClick={() => setCurrentPage(i + 1)}
-            className={`mx-1 px-3 py-1 border rounded-md ${
-              currentPage === i + 1 ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-800"
-            }`}
+      <button onClick={() => setIsModalOpen(true)}>Upload Resource</button>
+      {isModalOpen && (
+        <div>
+          <input
+            type="text"
+            placeholder="Class ID"
+            value={formData.class_id}
+            onChange={(e) => setFormData({ ...formData, class_id: e.target.value })}
+          />
+          <textarea
+            placeholder="Description"
+            value={formData.description}
+            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+          />
+          <select
+            value={formData.permissions}
+            onChange={(e) => setFormData({ ...formData, permissions: e.target.value })}
           >
-            {i + 1}
-          </button>
-        ))}
-      </div>
-
-      {/* Upload Resource Modal */}
-      {showUploadModal && (
-        <div className="fixed inset-0 bg-gray-800 bg-opacity-50 flex justify-center items-center">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-96">
-            <h2 className="text-xl font-bold mb-4">Upload Resource</h2>
-            <form onSubmit={handleUpload} className="space-y-3">
-              <input
-                type="file"
-                onChange={(e) => setFile(e.target.files[0])}
-                className="w-full p-2 border rounded-md"
-                required
-              />
-              <input
-                type="text"
-                placeholder="Class ID"
-                value={classId}
-                onChange={(e) => setClassId(e.target.value)}
-                className="w-full p-2 border rounded-md"
-                required
-              />
-              <input
-                type="text"
-                placeholder="Description (optional)"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                className="w-full p-2 border rounded-md"
-              />
-              <select
-                value={permissions}
-                onChange={(e) => setPermissions(e.target.value)}
-                className="w-full p-2 border rounded-md"
-              >
-                <option value="public">Public</option>
-                <option value="class-only">Class Only</option>
-              </select>
-              <div className="flex justify-end space-x-2">
-                <button
-                  type="button"
-                  onClick={() => setShowUploadModal(false)}
-                  className="px-4 py-2 bg-gray-500 text-white rounded-md"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-blue-600 text-white rounded-md"
-                >
-                  Upload
-                </button>
-              </div>
-            </form>
-          </div>
+            <option value="private">Private</option>
+            <option value="public">Public</option>
+          </select>
+          <input type="file" onChange={handleFileChange} />
+          <button onClick={handleFileUpload}>{loading ? "Uploading..." : "Upload"}</button>
         </div>
       )}
+      {error && <p>{error}</p>}
     </div>
   );
-};
+}
 
-export default Resources;
+export default MainComponent;

@@ -7,6 +7,10 @@ from werkzeug.utils import secure_filename
 
 resource_bp = Blueprint('resource_bp', __name__)
 
+# Create the 'uploads' directory if it doesn't exist
+UPLOAD_FOLDER = 'uploads'
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
 # Allowed file types
 ALLOWED_EXTENSIONS = {'pdf', 'docx', 'png', 'jpg', 'jpeg'}
 
@@ -28,7 +32,7 @@ def get_resources():
         "uploaded_by": res.uploaded_by,
         "file_url": res.file_url,
         "description": res.description,
-        "permissions": res.permissions  # Added permissions field
+        "permissions": res.permissions
     } for res in resources_paginated.items]
 
     return jsonify({
@@ -38,34 +42,44 @@ def get_resources():
         "current_page": resources_paginated.page
     }), 200
 
-# ✅ Upload a New Resource (File Upload Support)
+# ✅ Upload Resource
 @resource_bp.route('/resources/upload', methods=['POST'])
 @jwt_required()
 def upload_resource():
+    print("Request files:", request.files)
+    print("Request form data:", request.form)
+
     if 'file' not in request.files:
         return jsonify({"msg": "No file provided"}), 400
 
     file = request.files['file']
-    data = request.form  # Using form-data instead of JSON
+    data = request.form
 
     if file.filename == '' or not allowed_file(file.filename):
         return jsonify({"msg": "Invalid file type"}), 400
 
+    # Ensure required form fields are present
+    class_id = data.get('class_id')
+    permissions = data.get('permissions')
+    if not class_id or not permissions:
+        return jsonify({"msg": "class_id and permissions are required"}), 400
+
+    # Secure file name and save it
     filename = secure_filename(file.filename)
-    file_path = os.path.join('uploads', filename)  # Save in 'uploads' folder
+    upload_dir = 'uploads'
+    os.makedirs(upload_dir, exist_ok=True)
+    file_path = os.path.join(upload_dir, filename)
     file.save(file_path)
 
-    if 'class_id' not in data or 'permissions' not in data:
-        return jsonify({"msg": "class_id and permissions required"}), 400
-
+    # Create new Resource instance
     new_resource = Resource(
-        class_id=data['class_id'],
-        uploaded_by=get_jwt_identity(),  # Get educator from JWT token
+        class_id=class_id,
+        uploaded_by=get_jwt_identity(),
         file_url=file_path,
         description=data.get('description', ''),
-        permissions=data['permissions']  # Store access control
+        permissions=permissions
     )
-    
+
     db.session.add(new_resource)
     db.session.commit()
 
@@ -98,9 +112,14 @@ def update_resource(resource_id):
     if 'description' in data:
         res.description = data['description']
     if 'permissions' in data:
-        res.permissions = data['permissions']  # Allow updating access permissions
+        res.permissions = data['permissions']
 
-    db.session.commit()
+    try:
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"msg": f"Update failed: {str(e)}"}), 500
+
     return jsonify({"msg": "Resource updated"}), 200
 
 # ✅ Delete a Resource
@@ -108,6 +127,12 @@ def update_resource(resource_id):
 @jwt_required()
 def delete_resource(resource_id):
     res = Resource.query.get_or_404(resource_id)
-    db.session.delete(res)
-    db.session.commit()
+
+    try:
+        db.session.delete(res)
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"msg": f"Delete failed: {str(e)}"}), 500
+
     return jsonify({"msg": "Resource deleted"}), 200

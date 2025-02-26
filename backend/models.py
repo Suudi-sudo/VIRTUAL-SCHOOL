@@ -116,21 +116,23 @@ class Attendance(db.Model):
        return f"<Attendance {self.student_id} - {self.status}>"
 
 class Resource(db.Model):
-   """Stores uploaded files/notes."""
-   __tablename__ = "resources"
+    """Stores uploaded files/notes."""
+    __tablename__ = "resources"
 
-   id = Column(Integer, primary_key=True)
-   class_id = Column(Integer, ForeignKey("classes.id"), nullable=False)
-   uploaded_by = Column(Integer, ForeignKey("users.id"), nullable=False)
-   file_url = Column(String(255), nullable=False)
-   description = Column(Text, nullable=True)
+    id = Column(Integer, primary_key=True)
+    class_id = Column(Integer, ForeignKey("classes.id"), nullable=False)
+    uploaded_by = Column(Integer, ForeignKey("users.id"), nullable=False)
+    file_url = Column(String(255), nullable=False)
+    description = Column(Text, nullable=True)
+    permissions = Column(String(50), nullable=False, default="private")  # New field for permissions
 
-   # Relationships
-   class_ = relationship("Class", back_populates="resources")
-   uploader = relationship("User", back_populates="resources_uploaded", foreign_keys=[uploaded_by])
+    # Relationships
+    class_ = relationship("Class", back_populates="resources")
+    uploader = relationship("User", back_populates="resources_uploaded", foreign_keys=[uploaded_by])
 
-   def __repr__(self):
-       return f"<Resource {self.file_url}>"
+    def __repr__(self):
+        return f"<Resource {self.file_url}>"
+
 
 class Exam(db.Model):
    """Stores exam details."""
