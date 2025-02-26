@@ -3,7 +3,7 @@ import "../App"; // Import the CSS
 
 const Navbar = () => {
   // Replace with actual authentication logic
-  const student = false; // When logged in, student is true
+  const student = true; // When logged in, student is true
 
   return (
     <nav className="navbar">

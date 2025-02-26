@@ -1,11 +1,13 @@
-import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
-import axios from 'axios';
+import React, { useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
+import axios from "axios";
+import "bootstrap/dist/css/bootstrap.min.css"; // Import Bootstrap
 
 const ExamPage = () => {
   const [exam, setExam] = useState(null);
   const [timeLeft, setTimeLeft] = useState(0);
   const [answers, setAnswers] = useState({});
+  const [submitting, setSubmitting] = useState(false);
   const { examId } = useParams();
 
   useEffect(() => {
@@ -15,7 +17,7 @@ const ExamPage = () => {
         setExam(response.data);
         setTimeLeft(response.data.duration * 60); // Convert duration to seconds
       } catch (error) {
-        console.error('Error fetching exam:', error);
+        console.error("Error fetching exam:", error);
       }
     };
 
@@ -46,18 +48,17 @@ const ExamPage = () => {
       }
     };
 
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-
+    document.addEventListener("visibilitychange", handleVisibilityChange);
     return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
   }, []);
 
   const alertTeacher = async () => {
     try {
-      await axios.post('/api/alert-teacher', { examId, studentId: 'current-student-id' });
+      await axios.post("/api/alert-teacher", { examId, studentId: "current-student-id" });
     } catch (error) {
-      console.error('Error alerting teacher:', error);
+      console.error("Error alerting teacher:", error);
     }
   };
 
@@ -69,38 +70,64 @@ const ExamPage = () => {
   };
 
   const submitExam = async () => {
+    setSubmitting(true);
     try {
       await axios.post(`/api/exams/${examId}/submit`, { answers });
-      // Handle successful submission (e.g., redirect to results page)
+      alert("Exam submitted successfully!");
     } catch (error) {
-      console.error('Error submitting exam:', error);
+      console.error("Error submitting exam:", error);
+    } finally {
+      setSubmitting(false);
     }
   };
 
-  if (!exam) return <div>Loading exam...</div>;
+  if (!exam) return <div className="text-center mt-5">Loading exam...</div>;
 
   return (
-    <div>
-      <h1>{exam.title}</h1>
-      <div>Time left: {Math.floor(timeLeft / 60)}:{timeLeft % 60}</div>
-      {exam.questions.map((question) => (
-        <div key={question.id}>
-          <p>{question.text}</p>
-          {question.options.map((option) => (
-            <label key={option.id}>
-              <input
-                type="radio"
-                name={`question-${question.id}`}
-                value={option.id}
-                onChange={() => handleAnswerChange(question.id, option.id)}
-                checked={answers[question.id] === option.id}
-              />
-              {option.text}
-            </label>
-          ))}
+    <div className="container mt-5">
+      <div className="card shadow-lg p-4">
+        <div className="d-flex justify-content-between align-items-center mb-3">
+          <h1 className="text-primary">{exam.title}</h1>
+          <div className={`badge ${timeLeft <= 60 ? "bg-danger" : timeLeft <= 300 ? "bg-warning" : "bg-primary"} fs-5`}>
+            {Math.floor(timeLeft / 60)}:{String(timeLeft % 60).padStart(2, "0")}
+          </div>
         </div>
-      ))}
-      <button onClick={submitExam}>Submit Exam</button>
+
+        <div className="progress mb-4">
+          <div
+            className="progress-bar bg-success"
+            role="progressbar"
+            style={{ width: `${(Object.keys(answers).length / exam.questions.length) * 100}%` }}
+          ></div>
+        </div>
+
+        {exam.questions.map((question, index) => (
+          <div key={question.id} className="mb-4 p-3 border rounded bg-light">
+            <h5>
+              {index + 1}. {question.text}
+            </h5>
+            <div className="form-check">
+              {question.options.map((option) => (
+                <div key={option.id} className="form-check">
+                  <input
+                    type="radio"
+                    className="form-check-input"
+                    name={`question-${question.id}`}
+                    value={option.id}
+                    onChange={() => handleAnswerChange(question.id, option.id)}
+                    checked={answers[question.id] === option.id}
+                  />
+                  <label className="form-check-label">{option.text}</label>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+
+        <button className="btn btn-primary w-100" onClick={submitExam} disabled={submitting}>
+          {submitting ? "Submitting..." : "Submit Exam"}
+        </button>
+      </div>
     </div>
   );
 };
