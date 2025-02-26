@@ -6,7 +6,6 @@ import Register from "./pages/Register";
 
 import StudentDashboard from "./pages/StudentDashboard/Dashboard";
 
-
 import Dashboard from './pages/OwnersDashboard/Dashboard';
 import Students from './pages/OwnersDashboard/Students';
 import Teachers from './pages/OwnersDashboard/Teachers';
@@ -15,11 +14,16 @@ import CreateSchool from './pages/OwnersDashboard/CreateSchool';
 // import Sidebar from "./pages/OwnersDashboard/Sidebar";
 import School from "./pages/OwnersDashboard/School";
 
-
 import "./App.css"; // Import the CSS file
-import EducatorDashboard from "./pages/Educator/EducatorDashboard";
-import ExamPage from "./pages/StudentDashboard/Exam";
 
+import ExamPage from "./pages/StudentDashboard/Exam";
+// educator 
+import EducatorDashboard from "./pages/Educator/EducatorDashboard";
+import Attendance from "./pages/Educator/Attendance";
+import Resources from "./pages/Educator/Resources";
+import Permissions from "./pages/Educator/Permissions";
+import ClassChat from "./pages/Educator/ClassChat";
+import Exams from "./pages/Educator/Exams";
 
 function App() {
     return (
@@ -38,11 +42,16 @@ function App() {
                 <Route path="/createschool" element={<CreateSchool />} />
                 <Route path="/schools" element={<School />} />
 
-                <Route path="/educator" element={<EducatorDashboard />} />
 
                 <Route path="/student" element={<StudentDashboard />} />
                 <Route path="/exam" element={<ExamPage/>} />
-
+              {/* educator route */}
+              <Route path="/educator/dashboard" element={<EducatorDashboard />} />
+                      <Route path="/educator/attendance" element={<Attendance />} />
+                      <Route path="/educator/resources" element={<Resources />} />
+                      <Route path="/educator/permissions" element={<Permissions />} />
+                      <Route path="/educator/chat" element={<ClassChat />} />
+                      <Route path="/educator/exams" element={<Exams />} />
 
             </Routes>
         </Router>
