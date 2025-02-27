@@ -6,14 +6,14 @@ import { FaUser, FaBook, FaComments, FaGraduationCap, FaBell } from 'react-icons
 
 const StudentDashboard = () => {
   // Mock data (replace with actual data from your backend)
-  const studentName = "big  mac ";
+  const studentName = "Bill Gates ";
   const upcomingExams = [
     { id: 1, subject: "Mathematics", date: "2023-06-15" },
     { id: 2, subject: "Science", date: "2023-06-18" },
   ];
   const recentAnnouncements = [
     { id: 1, title: "Graduation", date: "2025-05-10" },
-    { id: 2, title: "Summer Break Schedule", date: "2023-06-05" },
+    { id: 2, title: "Done with school  ", date: "2025-06-05" },
   ];
 
   return (
@@ -27,7 +27,7 @@ const StudentDashboard = () => {
                 <Link to="/student/profile" className="nav-link"><FaUser /> Profile</Link>
               </li>
               <li className="nav-item">
-                <Link to="/student/exam" className="nav-link"><FaGraduationCap /> Exam</Link>
+                <Link to="/exam" className="nav-link"><FaGraduationCap /> Exam</Link>
               </li>
               <li className="nav-item">
                 <Link to="/student/chat" className="nav-link"><FaComments /> Chat</Link>

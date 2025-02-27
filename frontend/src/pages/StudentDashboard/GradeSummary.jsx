@@ -12,9 +12,12 @@ const GradeSummary = () => {
       try {
         setLoading(true);
         const response = await axios.get('/api/student/exam-grades');
-        setExamGrades(response.data);
-      } catch (error) {
-        console.error('Error fetching exam grades:', error);
+
+        // Ensure the response is an array
+        const grades = Array.isArray(response.data) ? response.data : [];
+        setExamGrades(grades);
+      } catch (err) {
+        console.error('Error fetching exam grades:', err);
         setError('Failed to load exam grades. Please try again later.');
       } finally {
         setLoading(false);
@@ -49,19 +52,20 @@ const GradeSummary = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {examGrades.map((exam) => (
-                      <tr key={exam.id}>
-                        <td>{exam.title}</td>
+                    {examGrades.map((exam, index) => (
+                      <tr key={exam.id || index}>
+                        <td>{exam.title || 'N/A'}</td>
                         <td>{exam.score}/{exam.totalPoints}</td>
                         <td>
-                          <span className={`badge ${exam.grade === 'A' ? 'bg-success' :
+                          <span className={`badge ${
+                            exam.grade === 'A' ? 'bg-success' :
                             exam.grade === 'B' ? 'bg-primary' :
                             exam.grade === 'C' ? 'bg-warning' :
                             'bg-danger'}`}>
-                            {exam.grade}
+                            {exam.grade || 'N/A'}
                           </span>
                         </td>
-                        <td>{new Date(exam.date).toLocaleDateString()}</td>
+                        <td>{exam.date ? new Date(exam.date).toLocaleDateString() : 'N/A'}</td>
                       </tr>
                     ))}
                   </tbody>
