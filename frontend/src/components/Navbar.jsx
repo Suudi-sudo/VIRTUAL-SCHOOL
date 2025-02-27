@@ -3,12 +3,16 @@ import "../App"; // Import the CSS
 
 const Navbar = () => {
   // Replace with actual authentication logic
-  const student = true; // When logged in, student is true
+  const student = false; // When logged in, student is true
 
   return (
     <nav className="navbar">
       <Link to="/" className="navbar-logo">
+
+       
+
         <img src="/arcticons--virtual-android (1).png" alt="Logo" className="navbar-logo-img" />
+
         <span className="navbar-title">VIRTUAL SCHOOL</span>
       </Link>
 
