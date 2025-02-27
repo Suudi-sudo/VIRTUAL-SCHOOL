@@ -11,19 +11,23 @@ from flask_mail import Message
 from google.oauth2 import id_token
 from google.auth.transport import requests as google_requests
 import cloudinary.uploader
-from models import User, db
+from models import User, School, Class, StudentsClasses, db
 from datetime import datetime, timedelta
 import secrets
 from urllib.parse import quote_plus, urlencode
+
 import jwt
 # Configuration (ensure these are set via environment variables or another config method)
+
+
+
 GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID", None)
 GOOGLE_CLIENT_SECRET = os.environ.get("GOOGLE_CLIENT_SECRET", None)
+
 CLOUD_NAME = os.environ.get("CLOUD_NAME")
 CLOUDINARY_API_KEY = os.environ.get("CLOUDINARY_API_KEY")
 CLOUDINARY_API_SECRET = os.environ.get("CLOUDINARY_API_SECRET")
 
-# Configure Cloudinary
 cloudinary.config(
     cloud_name=CLOUD_NAME,
     api_key=CLOUDINARY_API_KEY,
@@ -31,24 +35,23 @@ cloudinary.config(
     secure=True
 )
 
-# Blueprint Configuration
 user_bp = Blueprint('user_bp', __name__)
 
 def login_user(user):
-    """Create and return a JWT token for the given user."""
+    """Create and return a JWT token for the given user (never expires if configured)."""
     access_token = create_access_token(identity=user.id)
     return jsonify({
         "msg": "Login successful",
         "access_token": access_token,
         "user_id": user.id,
-        "email": user.email
+        "email": user.email,
+        "role": user.role
     }), 200
 
 @user_bp.route('/register', methods=['POST'])
 def register():
     """Register a new user and send a welcome email."""
     data = request.get_json()
-
     if not data:
         return jsonify({"msg": "No input data provided"}), 400
 
@@ -64,14 +67,14 @@ def register():
     new_user = User(
         username=data['username'],
         email=data['email'],
-        role=data['role']
+        role=data['role']  # e.g., 'student', 'educator', 'admin'
     )
     new_user.set_password(data['password'])  # Hash password
 
     db.session.add(new_user)
     db.session.commit()
 
-    # Send welcome email (if mail is configured)
+    # Optional: Send welcome email
     mail = current_app.extensions.get('mail')
     if mail:
         try:
@@ -88,7 +91,6 @@ def register():
             )
             mail.send(msg)
         except Exception as e:
-            # Log the error, but do not fail the registration
             current_app.logger.error(f"Error sending welcome email: {e}")
 
     return jsonify({"msg": "User created successfully."}), 201
@@ -107,6 +109,7 @@ def login():
 
     user = User.query.filter_by(email=email).first()
     if user and user.check_password(password):
+
         # ✅ Generate JWT token with user ID & role
         token = jwt.encode(
             {
@@ -120,9 +123,12 @@ def login():
         
         return jsonify({"token": token, "role": user.role})  # ✅ Include token & role
 
+
+        return login_user(user)
+
     return jsonify({"msg": "Bad email or password."}), 401
 
-# !google login
+#    !google login
 @user_bp.route('/google_login', methods=['POST'])
 def google_login():
     """Authenticate a user and issue a JWT token."""
@@ -164,10 +170,7 @@ def google_login():
 
 @user_bp.route('/reset-password', methods=['POST'])
 def request_reset_password():
-    """
-    Send a reset password link to the user's email.
-    The link includes a JWT reset token as a URL parameter.
-    """
+    """Send a reset password link to the user's email."""
     data = request.get_json()
     if not data:
         return jsonify({"msg": "No input data provided"}), 400
@@ -180,9 +183,9 @@ def request_reset_password():
     if not user:
         return jsonify({"msg": "Email not found."}), 404
 
-    # Generate a reset token that expires in 15 minutes
+    # Generate a reset token that expires in 15 minutes (or set to False if you want no expiration)
     token = create_access_token(identity=user.email, expires_delta=timedelta(minutes=15))
-    # Build the reset password link (this URL should be accessible to your client/frontend)
+
     reset_link = url_for('user_bp.reset_password_with_token', token=token, _external=True)
 
     mail_instance = current_app.extensions.get('mail')
@@ -193,7 +196,6 @@ def request_reset_password():
                 recipients=[email],
                 sender="noreply@yourapp.com"
             )
-            # Using HTML content so that the reset link appears clickable in the email
             msg.html = (
                 f"<p>Hello {user.username},</p>"
                 "<p>We received a request to reset your password. Please click the link below to reset your password:</p>"
@@ -211,16 +213,12 @@ def request_reset_password():
 
 @user_bp.route('/reset-password/<token>', methods=['POST'])
 def reset_password_with_token(token):
-    """
-    Reset the user's password using the token provided in the URL.
-    Expects a JSON payload with 'new_password'.
-    """
+    """Reset the user's password using the token provided in the URL."""
     data = request.get_json()
     if not data or 'new_password' not in data:
         return jsonify({"msg": "New password is required"}), 400
 
     try:
-        # Decode the token to get the user's email (identity)
         decoded = decode_token(token)
         user_email = decoded.get("sub")
     except Exception as e:
@@ -231,7 +229,6 @@ def reset_password_with_token(token):
     if not user:
         return jsonify({"msg": "User not found."}), 404
 
-    # Update the user's password
     user.set_password(data['new_password'])
     db.session.commit()
 
@@ -242,12 +239,10 @@ def reset_password_with_token(token):
 def profile(user_id):
     """Retrieve or update a user's profile."""
     user = User.query.get(user_id)
-
     if not user:
         return jsonify({"msg": "User not found."}), 404
 
     if request.method == 'GET':
-        # Return user's profile details
         return jsonify({
             "id": user.id,
             "username": user.username,
@@ -262,7 +257,6 @@ def profile(user_id):
         if not data:
             return jsonify({"msg": "No input data provided"}), 400
 
-        # Update username and/or other fields as necessary
         if 'username' in data:
             user.username = data['username']
         db.session.commit()
@@ -274,7 +268,6 @@ def upload_profile_pic():
     """Upload a profile picture to Cloudinary."""
     user_id = get_jwt_identity()
     user = User.query.get(user_id)
-
     if not user:
         return jsonify({"msg": "User not found."}), 404
 
@@ -282,7 +275,6 @@ def upload_profile_pic():
         return jsonify({"msg": "No file part"}), 400
 
     file = request.files['file']
-
     if file.filename == '':
         return jsonify({"msg": "No selected file"}), 400
 
@@ -294,13 +286,22 @@ def upload_profile_pic():
     except Exception as e:
         return jsonify({"msg": "Failed to upload image.", "error": str(e)}), 500
 
+# ------------------------------------------------------------------------------
+# GET /users?role=student or /users?role=educator => Filters by role
+# Otherwise returns all users
+# ------------------------------------------------------------------------------
 @user_bp.route('/users', methods=['GET'])
 @jwt_required()
 def get_users():
-    """Retrieve a paginated list of users."""
+    """Retrieve a paginated list of users, optionally filtered by role."""
     page_num = request.args.get('page', 1, type=int)
-    users_query = User.query.paginate(page=page_num, per_page=10)  # Pagination
+    role = request.args.get('role', None, type=str)  # e.g. 'student', 'educator', 'admin'
 
+    query = User.query
+    if role:
+        query = query.filter_by(role=role)
+
+    users_query = query.paginate(page=page_num, per_page=10)
     users_list = [{
         "id": user.id,
         "username": user.username,
@@ -318,11 +319,163 @@ def get_users():
 @user_bp.route('/logout', methods=['POST'])
 @jwt_required()
 def logout():
-    """
-    Log out a user.
-
-    Note: In a stateless JWT system, logout is typically handled on the client side by simply removing the token.
-    If you implement token blacklisting, you could add the token to a blacklist here.
-    """
-    # For now, we'll simply return a success message.
+    """Stateless logout: the client just removes the token."""
     return jsonify({"msg": "Logout successful. Please remove your token from storage."}), 200
+
+# ------------------------------------------------------------------------------
+# ADDITIONAL ROUTES: UPDATE, DELETE, ASSIGN USERS TO SCHOOL OR CLASS
+# ------------------------------------------------------------------------------
+@user_bp.route('/users/<int:user_id>/update', methods=['PUT'])
+@jwt_required()
+def update_user(user_id):
+    """
+    Update a user's details (e.g., username, email).
+    Adjust role checks if you only want certain roles to do this.
+    """
+    user_to_update = User.query.get(user_id)
+    if not user_to_update:
+        return jsonify({"msg": "User not found."}), 404
+
+    data = request.get_json() or {}
+    if 'username' in data:
+        user_to_update.username = data['username']
+    if 'email' in data:
+        user_to_update.email = data['email']
+
+    db.session.commit()
+    return jsonify({"msg": "User updated successfully."}), 200
+
+@user_bp.route('/users/<int:user_id>/delete', methods=['DELETE'])
+@jwt_required()
+def delete_user(user_id):
+    """
+    Permanently remove a user from the database.
+    Only admins can delete users.
+    """
+    current_user_id = get_jwt_identity()
+    current_user = User.query.get(current_user_id)
+    if not current_user:
+        return jsonify({"msg": "Invalid current user."}), 401
+
+    # Must be admin
+    if current_user.role.lower() != "admin":
+        return jsonify({"msg": "Only admins can delete users."}), 403
+
+    user_to_delete = User.query.get(user_id)
+    if not user_to_delete:
+        return jsonify({"msg": "User not found."}), 404
+
+    db.session.delete(user_to_delete)
+    db.session.commit()
+    return jsonify({"msg": "User deleted successfully."}), 200
+
+@user_bp.route('/schools/<int:school_id>/add-student', methods=['PATCH'])
+@jwt_required()
+def add_student_to_school(school_id):
+    """
+    Assign a user with role='student' to a specific school.
+    Only the user who created (owns) that school can add students.
+    Expects JSON: { "student_id": 123 }
+    """
+    current_user_id = get_jwt_identity()
+    current_user = User.query.get(current_user_id)
+    if not current_user:
+        return jsonify({"msg": "Invalid current user."}), 401
+
+    school = School.query.get(school_id)
+    if not school:
+        return jsonify({"msg": "School not found."}), 404
+
+    # Must be the owner of this school
+    if school.created_by != current_user_id:
+        return jsonify({"msg": "Only the school owner can add students to this school."}), 403
+
+    data = request.get_json() or {}
+    student_id = data.get('student_id')
+    if not student_id:
+        return jsonify({"msg": "student_id is required"}), 400
+
+    student = User.query.get(student_id)
+    if not student:
+        return jsonify({"msg": "User not found."}), 404
+
+    # Must be role=student
+    if student.role.lower() != 'student':
+        return jsonify({"msg": "User is not a student."}), 400
+
+    student.school_id = school_id
+    db.session.commit()
+    return jsonify({"msg": "Student assigned to school successfully."}), 200
+
+# NEW: Add Educator to School
+@user_bp.route('/schools/<int:school_id>/add-educator', methods=['PATCH'])
+@jwt_required()
+def add_educator_to_school(school_id):
+    """
+    Assign a user with role='educator' (teacher) to a specific school.
+    Only the user who created (owns) that school can add educators.
+    Expects JSON: { "teacher_id": 123 }
+    """
+    current_user_id = get_jwt_identity()
+    current_user = User.query.get(current_user_id)
+    if not current_user:
+        return jsonify({"msg": "Invalid current user."}), 401
+
+    school = School.query.get(school_id)
+    if not school:
+        return jsonify({"msg": "School not found."}), 404
+
+    # Must be the owner of this school
+    if school.created_by != current_user_id:
+        return jsonify({"msg": "Only the school owner can add educators to this school."}), 403
+
+    data = request.get_json() or {}
+    teacher_id = data.get('teacher_id')
+    if not teacher_id:
+        return jsonify({"msg": "teacher_id is required"}), 400
+
+    teacher = User.query.get(teacher_id)
+    if not teacher:
+        return jsonify({"msg": "User not found."}), 404
+
+    # Must be role=educator
+    if teacher.role.lower() != 'educator':
+        return jsonify({"msg": "User is not an educator."}), 400
+
+    # Optionally, store the teacher's school_id
+    teacher.school_id = school_id
+    db.session.commit()
+    return jsonify({"msg": "Educator assigned to school successfully."}), 200
+
+@user_bp.route('/classes/<int:class_id>/add-student', methods=['POST'])
+@jwt_required()
+def add_student_to_class(class_id):
+    """
+    Enroll a student (role='student') in a specific class (many-to-many).
+    The student must already belong to the same school as the class.
+    Expects JSON: { "student_id": 123 }
+    """
+    data = request.get_json() or {}
+    student_id = data.get('student_id')
+    if not student_id:
+        return jsonify({"msg": "student_id is required"}), 400
+
+    class_ = Class.query.get(class_id)
+    if not class_:
+        return jsonify({"msg": "Class not found."}), 404
+
+    student = User.query.get(student_id)
+    if not student:
+        return jsonify({"msg": "User not found."}), 404
+
+    if student.role.lower() != 'student':
+        return jsonify({"msg": "User is not a student."}), 400
+
+    # Must match the same school
+    if student.school_id != class_.school_id:
+        return jsonify({"msg": "Student must belong to the same school as the class."}), 400
+
+    enrollment = StudentsClasses(student_id=student.id, class_id=class_.id)
+    db.session.add(enrollment)
+    db.session.commit()
+    return jsonify({"msg": "Student added to class successfully."}), 201

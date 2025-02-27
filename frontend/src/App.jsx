@@ -13,6 +13,7 @@ import Settings from './pages/OwnersDashboard/Settings';
 import CreateSchool from './pages/OwnersDashboard/CreateSchool';
 // import Sidebar from "./pages/OwnersDashboard/Sidebar";
 import School from "./pages/OwnersDashboard/School";
+import SchoolDetail from "./pages/OwnersDashboard/Studentdetail";
 
 import "./App.css"; // Import the CSS file
 
@@ -28,7 +29,7 @@ import Exams from "./pages/Educator/Exams";
 function App() {
     return (
         <Router className= 'app'>
-            <Navbar />
+            {/* <Navbar /> */}
             {/* <Sidebar /> */}
             <Routes>
                 <Route path="/" element={<Home />} />
@@ -41,17 +42,17 @@ function App() {
                 <Route path="/settings" element={<Settings />} />
                 <Route path="/createschool" element={<CreateSchool />} />
                 <Route path="/schools" element={<School />} />
-
+                <Route path="/schools/:schoolId" element={<SchoolDetail />} />
 
                 <Route path="/student" element={<StudentDashboard />} />
                 <Route path="/exam" element={<ExamPage/>} />
-              {/* educator route */}
-              <Route path="/educator/dashboard" element={<EducatorDashboard />} />
-                      <Route path="/educator/attendance" element={<Attendance />} />
-                      <Route path="/educator/resources" element={<Resources />} />
-                      <Route path="/educator/permissions" element={<Permissions />} />
-                      <Route path="/educator/chat" element={<ClassChat />} />
-                      <Route path="/educator/exams" element={<Exams />} />
+                 {/* educator route */}
+                <Route path="/educator/dashboard" element={<EducatorDashboard />} />
+                <Route path="/educator/attendance" element={<Attendance />} />
+                <Route path="/educator/resources" element={<Resources />} />
+                <Route path="/educator/permissions" element={<Permissions />} />
+                <Route path="/educator/chat" element={<ClassChat />} />
+                <Route path="/educator/exams" element={<Exams />} />
 
             </Routes>
         </Router>
