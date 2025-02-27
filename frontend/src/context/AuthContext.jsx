@@ -66,7 +66,7 @@ export const AuthProvider = ({ children }) => {
 
           // Role-based navigation
           if (user.role === "Educator" || user.role === "Student") {
-            navigate("/spaces");
+            navigate("/");
           } else if (user.role === "Owner") {
             navigate("/manage-bookings");
           }
@@ -82,23 +82,31 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Login function
-  const login = async (email, password) => {
-    const res = await fetch("http://127.0.0.1:5000/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
-    });
+ // Login function
+ const login = async (email, password) => {
+  const res = await fetch("http://127.0.0.1:5000/login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, password }),
+  });
 
-    const data = await res.json();
-    if (res.ok) {
-      setUser(data.user);
-      localStorage.setItem("user", JSON.stringify(data.user));
-    } else {
-      throw new Error(data.error);
+  const data = await res.json();
+  if (res.ok) {
+    setUser(data);
+    localStorage.setItem("user", JSON.stringify(data));
+    
+    // Role-based redirection
+    if (data.role === "Educator") {
+      navigate("/educator/dashboard");
+    } else if (data.role === "Student") {
+      navigate("/student/dashboard");
+    } else if (data.role === "Owner") {
+      navigate("/admin");
     }
-  };
-
+  } else {
+    throw new Error(data.error);
+  }
+};
   // Logout function
   const logout = async () => {
     await fetch("http://127.0.0.1:5000/logout", { method: "POST" });

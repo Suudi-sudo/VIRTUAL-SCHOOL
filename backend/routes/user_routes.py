@@ -15,7 +15,7 @@ from models import User, db
 from datetime import datetime, timedelta
 import secrets
 from urllib.parse import quote_plus, urlencode
-
+import jwt
 # Configuration (ensure these are set via environment variables or another config method)
 GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID", None)
 GOOGLE_CLIENT_SECRET = os.environ.get("GOOGLE_CLIENT_SECRET", None)
@@ -107,7 +107,18 @@ def login():
 
     user = User.query.filter_by(email=email).first()
     if user and user.check_password(password):
-        return login_user(user)
+        # ✅ Generate JWT token with user ID & role
+        token = jwt.encode(
+            {
+                "id": user.id, 
+                "role": user.role,  # ✅ Include role
+               "exp": datetime.utcnow() + timedelta(hours=24)  # ✅ Fixed!
+            },
+            current_app.config["SECRET_KEY"],  # ✅ Avoids circular import
+            algorithm="HS256"
+        )
+        
+        return jsonify({"token": token, "role": user.role})  # ✅ Include token & role
 
     return jsonify({"msg": "Bad email or password."}), 401
 
