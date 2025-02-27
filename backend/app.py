@@ -34,6 +34,7 @@ def create_app():
     app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///school_management.db"
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['JWT_SECRET_KEY'] = os.getenv("JWT_SECRET_KEY", "fallback_secret_key")
+    app.config["JWT_ACCESS_TOKEN_EXPIRES"] = False
 
     # Configure mail
     try:
