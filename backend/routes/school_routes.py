@@ -101,3 +101,35 @@ def create_class_in_school(school_id):
     db.session.add(new_class)
     db.session.commit()
     return jsonify({"msg": "Class created", "id": new_class.id}), 201
+
+
+
+@school_bp.route("/schools/<int:school_id>", methods=["GET"])
+@jwt_required()
+def get_school_details(school_id):
+    """
+    Return a single school's info, plus teachers and students in that school.
+    """
+    school = School.query.get(school_id)
+    if not school:
+        return jsonify({"msg": "School not found."}), 404
+
+    # Query users with role='educator' or role='student' who belong to this school
+    teachers = User.query.filter_by(role="educator", school_id=school_id).all()
+    students = User.query.filter_by(role="student", school_id=school_id).all()
+
+    return jsonify({
+        "school": {
+            "id": school.id,
+            "name": school.name,
+            "created_by": school.created_by,
+            "created_at": school.created_at
+            # etc...
+        },
+        "teachers": [
+            {"id": t.id, "username": t.username, "email": t.email} for t in teachers
+        ],
+        "students": [
+            {"id": s.id, "username": s.username, "email": s.email} for s in students
+        ]
+    }), 200

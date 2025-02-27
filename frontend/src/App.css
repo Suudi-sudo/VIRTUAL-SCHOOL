@@ -40,8 +40,6 @@ body {
   height: 50px;
   background-image: url(./image.png);
   width: 50px;
-  border-radius: 50%;
-  border: 2px solid white;
 }
 
 .navbar-title {
