@@ -8,6 +8,7 @@ const ExamPage = () => {
   const [timeLeft, setTimeLeft] = useState(0);
   const [answers, setAnswers] = useState({});
   const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState(null); // New: Track fetch errors
   const { examId } = useParams();
 
   useEffect(() => {
@@ -15,9 +16,10 @@ const ExamPage = () => {
       try {
         const response = await axios.get(`/api/exams/${examId}`);
         setExam(response.data);
-        setTimeLeft(response.data.duration * 60); // Convert duration to seconds
+        setTimeLeft((response.data?.duration || 0) * 60); // Convert duration to seconds
       } catch (error) {
         console.error("Error fetching exam:", error);
+        setError("Failed to load exam. Please try again.");
       }
     };
 
@@ -25,7 +27,7 @@ const ExamPage = () => {
   }, [examId]);
 
   useEffect(() => {
-    if (!exam) return;
+    if (!exam || !exam.questions) return;
 
     const timer = setInterval(() => {
       setTimeLeft((prevTime) => {
@@ -76,12 +78,14 @@ const ExamPage = () => {
       alert("Exam submitted successfully!");
     } catch (error) {
       console.error("Error submitting exam:", error);
+      alert("Failed to submit the exam. Please try again.");
     } finally {
       setSubmitting(false);
     }
   };
 
-  if (!exam) return <div className="text-center mt-5">Loading exam...</div>;
+  if (error) return <div className="alert alert-danger text-center mt-5">{error}</div>;
+  if (!exam || !exam.questions) return <div className="text-center mt-5">Loading exam...</div>;
 
   return (
     <div className="container mt-5">
@@ -97,7 +101,7 @@ const ExamPage = () => {
           <div
             className="progress-bar bg-success"
             role="progressbar"
-            style={{ width: `${(Object.keys(answers).length / exam.questions.length) * 100}%` }}
+            style={{ width: `${(Object.keys(answers).length / (exam?.questions?.length || 1)) * 100}%` }}
           ></div>
         </div>
 
