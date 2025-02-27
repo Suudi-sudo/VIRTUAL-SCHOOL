@@ -93,7 +93,7 @@ def register():
 
     return jsonify({"msg": "User created successfully."}), 201
 
-@user_bp.route('/login', methods=['POST'])
+@user_bp.route('/login', methods=['POST', 'GET'])
 def login():
     """Authenticate a user and issue a JWT token."""
     data = request.get_json()
@@ -111,29 +111,45 @@ def login():
 
     return jsonify({"msg": "Bad email or password."}), 401
 
-@user_bp.route("/google/login", methods=["POST"])
-
+# !google login
+@user_bp.route('/google_login', methods=['POST'])
 def google_login():
+    """Authenticate a user and issue a JWT token."""
+    # Parse JSON data from the request
     data = request.get_json()
-    token = data.get("id_token")
-    try:
-        id_info = id_token.verify_oauth2_token(token, google_requests.Request(), GOOGLE_CLIENT_ID)
-        email = id_info["email"]
-        user = User.query.filter_by(email=email).first()
-        if not user:
-            user = User(username=id_info["name"], email=email, role="student")
-            db.session.add(user)
-            db.session.commit()
-        return login_user(user)
-    except Exception:
-        return jsonify({"msg": "Google authentication failed."}), 400
+    if not data:
+        return jsonify({"error": "Invalid request data"}), 400
 
-@user_bp.route("/google/callback")
-def google_callback():
-    """Handle the Google OAuth callback."""
-    return jsonify({"msg": "Google callback not fully implemented in this snippet."}), 501
+    # Extract email from the request data
+    email = data.get('email')
+    if not email:
+        return jsonify({"error": "Email is required"}), 400
 
-# --- New Reset Password Endpoints ---
+    # Check if the user exists in the database
+    user = User.query.filter_by(email=email).first()
+
+    # If the user doesn't exist, create a new user with the "Student" role
+    if not user:
+        user = User(email=email, role="Student")
+        db.session.add(user)
+        db.session.commit()
+
+    # Generate a JWT token for the user
+    access_token = create_access_token(
+        identity=user.id,
+        expires_delta=timedelta(hours=1),  # Token expires in 1 hour
+        additional_claims={"role": user.role}
+    )
+
+    # Return the token and user details
+    return jsonify({
+        "access_token": access_token,
+        "user": {
+            "id": user.id,
+            "email": user.email,
+            "role": user.role,
+        }
+    }), 200
 
 @user_bp.route('/reset-password', methods=['POST'])
 def request_reset_password():
