@@ -11,7 +11,7 @@ function StudentsDashboard() {
             <h4 className="mb-4">Virtual </h4>
             <ul className="list-unstyled">
               <li className="mb-3">
-                <Link to="student/dashboard" className="text-white text-decoration-none">Dashboard</Link>
+                <Link to="/student/dashboard" className="text-white text-decoration-none">Dashboard</Link>
               </li>
               <li className="mb-3">
                 <Link to="/classes" className="text-white text-decoration-none">My Classes</Link>
