@@ -43,7 +43,7 @@ def get_resources():
         "file_url": res.file_url,
         "description": res.description,
         "permissions": res.permissions,
-        "created_at": res.created_at.isoformat() if res.created_at else None
+        # "created_at": res.created_at.isoformat() if res.created_at else None
     } for res in resources_paginated.items]
 
     return jsonify({
@@ -94,7 +94,7 @@ def upload_resource():
         file_url=file_path,
         description=data.get('description', ''),
         permissions=permissions,
-        created_at=datetime.utcnow()  # Add timestamp
+        # created_at=datetime.utcnow()  # Add timestamp
     )
 
     db.session.add(new_resource)
@@ -118,7 +118,7 @@ def get_resource(resource_id):
         "file_url": res.file_url,
         "description": res.description,
         "permissions": res.permissions,
-        "created_at": res.created_at.isoformat() if res.created_at else None
+        # "created_at": res.created_at.isoformat() if res.created_at else None
     }), 200
 
 # ✅ Update Resource (Only Description & Permissions)

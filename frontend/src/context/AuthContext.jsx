@@ -66,9 +66,9 @@ export const AuthProvider = ({ children }) => {
 
           // Role-based navigation
           if (user.role === "Educator" || user.role === "Student") {
-            navigate("/");
+            navigate("/admin");
           } else if (user.role === "Owner") {
-            navigate("/manage-bookings");
+            navigate("/admin");
           }
         }
       } else {

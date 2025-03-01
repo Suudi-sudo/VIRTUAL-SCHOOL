@@ -8,7 +8,7 @@ const Navbar = () => {
   return (
     <nav className="navbar">
       <Link to="/" className="navbar-logo">
-        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS6iA3QvhBFf3GtWh4r6TLTITivI8rBOa6FTg&s" alt="Logo" className="navbar-logo-img" />
+        <img src="/arcticons--virtual-android (1).png" alt="Logo" className="navbar-logo-img" />
         <span className="navbar-title">VIRTUAL SCHOOL</span>
       </Link>
 

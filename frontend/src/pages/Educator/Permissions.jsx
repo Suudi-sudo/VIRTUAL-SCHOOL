@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Card, Button, Form, Table, Spinner, Alert } from "react-bootstrap";
 import axios from "axios";
 
-const API_URL = "http://localhost:5000/resources"; // Change this if needed
+const API_URL = "http://localhost:5000/resources"; // Make sure this is correct!
 
 const Permissions = () => {
   const [resources, setResources] = useState([]);
@@ -17,12 +17,13 @@ const Permissions = () => {
     const fetchResources = async () => {
       setLoading(true);
       try {
-        const res = await axios.get(`${API_URL}`, {
+        const res = await axios.get(API_URL, {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         });
         setResources(res.data.resources);
       } catch (error) {
         console.error("Error fetching resources:", error);
+        setMessage("❌ Failed to load resources.");
       }
       setLoading(false);
     };
@@ -51,7 +52,7 @@ const Permissions = () => {
 
     try {
       await axios.put(
-        `${API_URL}/${selectedResource.id}`,
+        `${API_URL}/${selectedResource.id}`, // Ensure correct API pattern
         { permissions },
         {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
@@ -65,12 +66,32 @@ const Permissions = () => {
     setUpdating(false);
   };
 
+  // ✅ Delete Resource
+  const handleDeleteResource = async (resourceId) => {
+    if (!window.confirm("⚠️ Are you sure you want to delete this resource?")) return;
+    setMessage("");
+
+    try {
+      await axios.delete(`${API_URL}/${resourceId}`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      });
+
+      // Remove deleted resource from UI
+      setResources(resources.filter((res) => res.id !== resourceId));
+      setSelectedResource(null);
+      setMessage("🗑️ Resource deleted successfully!");
+    } catch (error) {
+      console.error("Error deleting resource:", error);
+      setMessage("❌ Failed to delete resource.");
+    }
+  };
+
   return (
     <div className="container mt-5">
       <h2 className="text-center mb-4">🔒 Manage Resource Permissions</h2>
 
       {/* ✅ Success/Error Message */}
-      {message && <Alert variant={message.includes("✅") ? "success" : "danger"}>{message}</Alert>}
+      {message && <Alert variant={message.includes("✅") || message.includes("🗑️") ? "success" : "danger"}>{message}</Alert>}
 
       {loading ? (
         <div className="text-center">
@@ -88,7 +109,7 @@ const Permissions = () => {
                     <tr>
                       <th>#</th>
                       <th>Resource</th>
-                      <th>Action</th>
+                      <th>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -96,13 +117,21 @@ const Permissions = () => {
                       <tr key={resource.id}>
                         <td>{index + 1}</td>
                         <td>{resource.description || "Unnamed Resource"}</td>
-                        <td>
+                        <td className="d-flex gap-2">
                           <Button
                             variant="primary"
                             size="sm"
+                            className="me-2"
                             onClick={() => handleResourceSelect(resource)}
                           >
                             Manage
+                          </Button>
+                          <Button
+                            variant="danger"
+                            size="sm"
+                            onClick={() => handleDeleteResource(resource.id)}
+                          >
+                            Delete 🗑️
                           </Button>
                         </td>
                       </tr>

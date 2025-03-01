@@ -3,6 +3,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import { jwtDecode } from "jwt-decode";
 import { GoogleLogin } from "@react-oauth/google";
 import ErrorBoundary from "../../ErrorBoundary";
+import { useNavigate } from "react-router-dom"; // Import useNavigate for redirects
 
 const Login = () => {
   const [user, setUser] = useState(null);
@@ -10,9 +11,12 @@ const Login = () => {
   const [formData, setFormData] = useState({
     email: "",
     password: "",
-    role: "student", // Add role to formData
+    role: "student", // Default role
   });
   const [message, setMessage] = useState("");
+
+  // Hook for navigation
+  const navigate = useNavigate();
 
   // Handle input changes
   const handleChange = (e) => {
@@ -33,8 +37,23 @@ const Login = () => {
       const data = await response.json();
 
       if (response.ok) {
+        // Save token and user_id to localStorage
+        localStorage.setItem("token", data.access_token);
+        localStorage.setItem("user_id", data.user_id);
+
         setUser(data);
         setMessage("Login successful!");
+
+        // Role-based redirect
+        if (data.role === "admin") {
+          navigate("/admin");
+        } else if (data.role === "educator") {
+          navigate("/educator/dashboard");
+        } else if (data.role === "student") {
+          navigate("/student/dashboard");
+        } else {
+          navigate("/");
+        }
       } else {
         setMessage(data.msg);
       }
@@ -61,6 +80,13 @@ const Login = () => {
       if (response.ok) {
         setUser(data.user);
         setMessage("Google login successful!");
+
+        // Save token and user_id to localStorage
+        localStorage.setItem("token", data.access_token);
+        localStorage.setItem("user_id", data.user_id);
+
+        // Redirect to admin dashboard after successful Google login
+        navigate("/admin");
       } else {
         setMessage(data.msg || "Failed to login with Google.");
       }
