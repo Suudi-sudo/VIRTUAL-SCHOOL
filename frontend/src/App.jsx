@@ -4,7 +4,7 @@ import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 
-import StudentDashboard from "./pages/StudentDashboard/Dashboard";
+// import StudentDashboard from "./pages/StudentDashboard/Dashboard";
 
 import Dashboard from './pages/OwnersDashboard/Dashboard';
 import Students from './pages/OwnersDashboard/Students';
@@ -26,6 +26,13 @@ import Permissions from "./pages/Educator/Permissions";
 import ClassChat from "./pages/Educator/ClassChat";
 import Exams from "./pages/Educator/Exams";
 
+import StudentsDashboard from './pages/StudentDashboard/Dashboard';
+import Chat from './pages/StudentDashboard/Chat';
+import Exam from './pages/StudentDashboard/Exam';
+import GradeSummary from './pages/StudentDashboard/GradeSummary';
+import Profile from './pages/StudentDashboard/Profile';
+import StudyMaterial from './pages/StudentDashboard/StudyMaterial';
+
 function App() {
     return (
         <Router className= 'app'>
@@ -44,8 +51,8 @@ function App() {
                 <Route path="/schools" element={<School />} />
                 <Route path="/schools/:schoolId" element={<SchoolDetail />} />
 
-                <Route path="/student" element={<StudentDashboard />} />
-                <Route path="/exam" element={<ExamPage/>} />
+                {/* <Route path="/student" element={<StudentDashboard />} />
+                <Route path="/exam" element={<ExamPage/>} /> */}
                  {/* educator route */}
                 <Route path="/educator/dashboard" element={<EducatorDashboard />} />
                 <Route path="/educator/attendance" element={<Attendance />} />
@@ -54,7 +61,13 @@ function App() {
                 <Route path="/educator/chat" element={<ClassChat />} />
                 <Route path="/educator/exams" element={<Exams />} />
 
-            </Routes>
+                <Route path="/student/dashboard" element={<StudentsDashboard />} />
+                <Route path="/chat" element={<Chat />} />
+                <Route path="/exam" element={<Exam />} />
+                <Route path="/grade-summary" element={<GradeSummary />} />
+                <Route path="/profile" element={<Profile />} />
+                <Route path="/study-material" element={<StudyMaterial />} />
+                </Routes>
         </Router>
     );
 }
