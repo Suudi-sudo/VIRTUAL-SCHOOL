@@ -8,29 +8,29 @@ function StudentsDashboard() {
         {/* Sidebar */}
         <Col xs={12} md={3} lg={2} className="bg-dark text-white vh-100" style={{ minHeight: '100vh' }}>
           <div className="p-3">
-            <h4 className="mb-4">Virtual School</h4>
+            <h4 className="mb-4">Virtual </h4>
             <ul className="list-unstyled">
               <li className="mb-3">
-                <a href="#dashboard" className="text-white text-decoration-none">Dashboard</a>
+                <Link to="student/dashboard" className="text-white text-decoration-none">Dashboard</Link>
               </li>
               <li className="mb-3">
-                <a href="#classes" className="text-white text-decoration-none">My Classes</a>
+                <Link to="/classes" className="text-white text-decoration-none">My Classes</Link>
               </li>
               <li className="mb-3">
-                <a href="#resources" className="text-white text-decoration-none">Resources</a>
+                <Link to="/resources" className="text-white text-decoration-none">Resources</Link>
               </li>
               <li className="mb-3">
-                <a href="#attendance" className="text-white text-decoration-none">Attendance</a>
+                <Link to="/attendance" className="text-white text-decoration-none">Attendance</Link>
               </li>
               <li className="mb-3">
-                <a href="#assessments" className="text-white text-decoration-none">Assessments</a>
+                <Link to="/assessments" className="text-white text-decoration-none">Assessments</Link>
               </li>
               <li className="mb-3">
-                <a href="#chat" className="text-white text-decoration-none">Class Chat</a>
+                <Link to="/chat" className="text-white text-decoration-none">Class Chat</Link>
               </li>
             </ul>
             <hr />
-            <a href="#signout" className="text-white text-decoration-none">Sign Out</a>
+            <Link to="/logout" className="text-white text-decoration-none">Sign Out</Link>
           </div>
         </Col>
 
