@@ -1,92 +1,138 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
-import GradeSummary from './GradeSummary';
-import 'bootstrap/dist/css/bootstrap.min.css';
-import { FaUser, FaBook, FaComments, FaGraduationCap, FaBell } from 'react-icons/fa';
+import { Container, Row, Col, Card, Button } from 'react-bootstrap';
 
-const StudentDashboard = () => {
-  // Mock data (replace with actual data from your backend)
-  const studentName = "big  mac ";
-  const upcomingExams = [
-    { id: 1, subject: "Mathematics", date: "2023-06-15" },
-    { id: 2, subject: "Science", date: "2023-06-18" },
-  ];
-  const recentAnnouncements = [
-    { id: 1, title: "Graduation", date: "2025-05-10" },
-    { id: 2, title: "Summer Break Schedule", date: "2023-06-05" },
-  ];
-
+function StudentsDashboard() {
   return (
-    <div className="container-fluid">
-      <div className="row">
+    <Container fluid className="p-0" style={{ minHeight: '100vh' }}>
+      <Row noGutters>
         {/* Sidebar */}
-        <nav className="col-md-3 col-lg-2 d-md-block bg-light sidebar">
-          <div className="position-sticky pt-3">
-            <ul className="nav flex-column">
-              <li className="nav-item">
-                <Link to="/student/profile" className="nav-link"><FaUser /> Profile</Link>
+        <Col xs={12} md={3} lg={2} className="bg-dark text-white vh-100" style={{ minHeight: '100vh' }}>
+          <div className="p-3">
+            <h4 className="mb-4">Virtual School</h4>
+            <ul className="list-unstyled">
+              <li className="mb-3">
+                <a href="#dashboard" className="text-white text-decoration-none">Dashboard</a>
               </li>
-              <li className="nav-item">
-                <Link to="/student/exam" className="nav-link"><FaGraduationCap /> Exam</Link>
+              <li className="mb-3">
+                <a href="#classes" className="text-white text-decoration-none">My Classes</a>
               </li>
-              <li className="nav-item">
-                <Link to="/student/chat" className="nav-link"><FaComments /> Chat</Link>
+              <li className="mb-3">
+                <a href="#resources" className="text-white text-decoration-none">Resources</a>
               </li>
-              <li className="nav-item">
-                <Link to="/student/study-material" className="nav-link"><FaBook /> Study Material</Link>
+              <li className="mb-3">
+                <a href="#attendance" className="text-white text-decoration-none">Attendance</a>
+              </li>
+              <li className="mb-3">
+                <a href="#assessments" className="text-white text-decoration-none">Assessments</a>
+              </li>
+              <li className="mb-3">
+                <a href="#chat" className="text-white text-decoration-none">Class Chat</a>
               </li>
             </ul>
+            <hr />
+            <a href="#signout" className="text-white text-decoration-none">Sign Out</a>
           </div>
-        </nav>
+        </Col>
 
-        {/* Main content */}
-        <main className="col-md-9 ms-sm-auto col-lg-10 px-md-4">
-          <div className="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-            <h1 className="h2">Welcome, {studentName}</h1>
-          </div>
-
-          <div className="row">
-            <div className="col-md-6">
-              <GradeSummary />
-            </div>
-            <div className="col-md-6">
-              <div className="card mb-4">
-                <div className="card-header">
-                  <h5><FaGraduationCap /> Upcoming Exams</h5>
-                </div>
-                <ul className="list-group list-group-flush">
-                  {upcomingExams.map(exam => (
-                    <li key={exam.id} className="list-group-item d-flex justify-content-between align-items-center">
-                      {exam.subject}
-                      <span className="badge bg-primary rounded-pill">{exam.date}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
+        {/* Main Content */}
+        <Col xs={12} md={9} lg={10} className="bg-light">
+          {/* Top Bar / Header */}
+          <div className="d-flex justify-content-between align-items-center p-3 border-bottom">
+            <h4 className="mb-0">Student's Dashboard</h4>
+            <div className="d-flex align-items-center">
+              <span className="me-3">Your Profile</span>
+              <img 
+                src="/avatar-4bp848qne6e50utunybrxx.webp" 
+                alt="Profile" 
+                className="rounded-circle" 
+                width="40" height="40"
+              />
             </div>
           </div>
 
-          <div className="row">
-            <div className="col-md-12">
-              <div className="card">
-                <div className="card-header">
-                  <h5><FaBell /> Recent Announcements</h5>
-                </div>
-                <ul className="list-group list-group-flush">
-                  {recentAnnouncements.map(announcement => (
-                    <li key={announcement.id} className="list-group-item d-flex justify-content-between align-items-center">
-                      {announcement.title}
-                      <span className="badge bg-secondary rounded-pill">{announcement.date}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          </div>
-        </main>
-      </div>
-    </div>
+          {/* Main Dashboard Content */}
+          <Container className="mt-4">
+            <h5>Here's what's happening today</h5>
+            <Row className="mt-3">
+              <Col md={4}>
+                <Card className="mb-3">
+                  <Card.Body>
+                    <Card.Title>Today's Classes</Card.Title>
+                    <Card.Text>Mathematics 101 - 2:30 PM Today</Card.Text>
+                    <Card.Text>Physics 201 - 4:00 PM Today</Card.Text>
+                  </Card.Body>
+                </Card>
+              </Col>
+              <Col md={4}>
+                <Card className="mb-3">
+                  <Card.Body>
+                    <Card.Title>Upcoming Assignments</Card.Title>
+                    <Card.Text>Math Homework (Due: Today)</Card.Text>
+                    <Card.Text>Physics Lab Report (Due: Tomorrow)</Card.Text>
+                  </Card.Body>
+                </Card>
+              </Col>
+              <Col md={4}>
+                <Card className="mb-3">
+                  <Card.Body>
+                    <Card.Title>Recent Resources</Card.Title>
+                    <Card.Text>Math Formulas (2 hours ago)</Card.Text>
+                    <Card.Text>Physics Notes (Yesterday)</Card.Text>
+                  </Card.Body>
+                </Card>
+              </Col>
+            </Row>
+
+            <Row className="mt-4">
+              <Col md={6}>
+                <Card className="mb-3">
+                  <Card.Body>
+                    <Card.Title>Your Classes</Card.Title>
+                    <div className="mb-3">
+                      <h6>Mathematics 101</h6>
+                      <p className="mb-1">Dr. Smith</p>
+                      <small>2:30 PM Today</small>
+                      <div className="mt-2">
+                        <Button variant="secondary" size="sm" className="me-2">Resources</Button>
+                        <Button variant="primary" size="sm">Chat</Button>
+                      </div>
+                    </div>
+                    <hr />
+                    <div>
+                      <h6>Physics 201</h6>
+                      <p className="mb-1">Prof. Johnson</p>
+                      <small>4:00 PM Today</small>
+                      <div className="mt-2">
+                        <Button variant="secondary" size="sm" className="me-2">Resources</Button>
+                        <Button variant="primary" size="sm">Chat</Button>
+                      </div>
+                    </div>
+                  </Card.Body>
+                </Card>
+              </Col>
+              <Col md={6}>
+                <Card className="mb-3">
+                  <Card.Body>
+                    <Card.Title>Recent Activity</Card.Title>
+                    <ul className="list-unstyled mb-0">
+                      <li className="mb-2">
+                        <i className="bi bi-check-circle text-success me-2"></i>
+                        Completed Math Quiz (1 hour ago)
+                      </li>
+                      <li>
+                        <i className="bi bi-download text-primary me-2"></i>
+                        Downloaded Physics Notes (3 hours ago)
+                      </li>
+                    </ul>
+                  </Card.Body>
+                </Card>
+              </Col>
+            </Row>
+          </Container>
+        </Col>
+      </Row>
+    </Container>
   );
-};
+}
 
-export default StudentDashboard;
+export default StudentsDashboard;
