@@ -12,7 +12,7 @@ const Register = () => {
     username: "",
     email: "",
     password: "",
-    role: "student",
+    role: "admin",
   });
   const [message, setMessage] = useState("");
 
@@ -39,17 +39,13 @@ const Register = () => {
 
       if (response.ok) {
         setUser(data);
-        localStorage.setItem("user", JSON.stringify(data)); // ✅ Save user to localStorage
-        setMessage("Registration successful! Redirecting...");
+        localStorage.setItem("admin", JSON.stringify(data)); // ✅ Save user to localStorage
+        setMessage("Registration successful! Redirecting to login...");
 
-        // ✅ Redirect based on role
+        // ✅ Redirect to login after successful registration
         setTimeout(() => {
-          if (data.role === "teacher") {
-            navigate("/educator/dashboard");
-          } else {
-            navigate("/");
-          }
-        }, 1500); // Small delay for user feedback
+          navigate("/login");
+        }, 1500);
       } else {
         setMessage(data.msg);
       }

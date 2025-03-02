@@ -3,7 +3,7 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
 import Navbar from "../components/Navbar";
-
+import { FaFacebookF, FaTwitter, FaInstagram, FaLinkedinIn } from 'react-icons/fa';
 function Home() {
   const navigate = useNavigate();
 
@@ -240,6 +240,9 @@ function Home() {
             GET STARTED
           </button>
         </div>
+
+        {/* Footer Section */}
+        
       </div>
     </div>
   );

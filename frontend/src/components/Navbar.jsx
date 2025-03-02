@@ -13,6 +13,8 @@ const Navbar = () => {
 
         <img src="/arcticons--virtual-android (1).png" alt="Logo" className="navbar-logo-img" />
 
+       
+
         <span className="navbar-title">VIRTUAL SCHOOL</span>
       </Link>
 

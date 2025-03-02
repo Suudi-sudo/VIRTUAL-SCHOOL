@@ -14,7 +14,7 @@ from googleapiclient.discovery import build
 from werkzeug.security import generate_password_hash
 from flask_socketio import SocketIO
 from models import db, User  # Ensure User model is imported
-
+from flask import send_from_directory
 # Load environment variables
 load_dotenv()
 
@@ -60,7 +60,8 @@ def create_app():
     migrate.init_app(app, db)
     JWTManager(app)
     socketio.init_app(app)
-    CORS(app)  # Enable CORS for all routes
+    CORS(app, supports_credentials=True)
+
 
     # Allow insecure transport for local development
     os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
@@ -162,6 +163,11 @@ def create_app():
     @app.route('/test')
     def test_api():
         return jsonify({"message": "CORS & WebSockets are working!"})
+    
+    # //////////////////////
+    @app.route('/uploads/<path:filename>')
+    def serve_uploaded_file(filename):
+      return send_from_directory("uploads", filename)
 
     # Print loaded environment variables
     print("\n✅ Environment Variables Loaded:")

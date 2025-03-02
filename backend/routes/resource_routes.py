@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, send_from_directory
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from models import db, Resource
 import os
@@ -27,7 +27,13 @@ def validate_file_size(file):
     file.seek(0)  # Reset file pointer
     return file_size <= MAX_FILE_SIZE
 
-# ✅ Get All Resources (Paginated)
+#  Serve Uploaded Files
+@resource_bp.route('/uploads/<filename>', methods=['GET'])
+def serve_file(filename):
+    """Serve files from the UPLOAD_FOLDER."""
+    return send_from_directory(UPLOAD_FOLDER, filename)
+
+# Get All Resources (Paginated)
 @resource_bp.route('/resources', methods=['GET'])
 @jwt_required()
 def get_resources():
@@ -40,10 +46,9 @@ def get_resources():
         "id": res.id,
         "class_id": res.class_id,
         "uploaded_by": res.uploaded_by,
-        "file_url": res.file_url,
+        "file_url": f"http://127.0.0.1:5000/uploads/{os.path.basename(res.file_url)}",  # Use fixed base URL
         "description": res.description,
         "permissions": res.permissions,
-        "created_at": res.created_at.isoformat() if res.created_at else None
     } for res in resources_paginated.items]
 
     return jsonify({
@@ -53,7 +58,7 @@ def get_resources():
         "current_page": resources_paginated.page
     }), 200
 
-# ✅ Upload Resource
+# Upload Resource
 @resource_bp.route('/resources/upload', methods=['POST'])
 @jwt_required()
 def upload_resource():
@@ -87,14 +92,16 @@ def upload_resource():
     file_path = os.path.join(UPLOAD_FOLDER, filename)
     file.save(file_path)
 
+    # Generate the full HTTP URL for the file
+    file_url = f"http://127.0.0.1:5000/uploads/{filename}"  # Use fixed base URL
+
     # Create new Resource instance
     new_resource = Resource(
         class_id=class_id,
         uploaded_by=get_jwt_identity(),
-        file_url=file_path,
+        file_url=file_url,  # Store the full HTTP URL
         description=data.get('description', ''),
         permissions=permissions,
-        created_at=datetime.utcnow()  # Add timestamp
     )
 
     db.session.add(new_resource)
@@ -103,10 +110,10 @@ def upload_resource():
     return jsonify({
         "msg": "Resource uploaded successfully",
         "id": new_resource.id,
-        "file_url": new_resource.file_url
+        "file_url": new_resource.file_url  # Return the full HTTP URL
     }), 201
 
-# ✅ Get Single Resource by ID
+# Get Single Resource by ID
 @resource_bp.route('/resources/<int:resource_id>', methods=['GET'])
 @jwt_required()
 def get_resource(resource_id):
@@ -115,13 +122,12 @@ def get_resource(resource_id):
         "id": res.id,
         "class_id": res.class_id,
         "uploaded_by": res.uploaded_by,
-        "file_url": res.file_url,
+        "file_url": res.file_url,  # Already a full HTTP URL
         "description": res.description,
         "permissions": res.permissions,
-        "created_at": res.created_at.isoformat() if res.created_at else None
     }), 200
 
-# ✅ Update Resource (Only Description & Permissions)
+# Update Resource (Only Description & Permissions)
 @resource_bp.route('/resources/<int:resource_id>', methods=['PUT'])
 @jwt_required()
 def update_resource(resource_id):
@@ -149,7 +155,7 @@ def update_resource(resource_id):
 
     return jsonify({"msg": "Resource updated"}), 200
 
-# ✅ Delete a Resource
+# Delete a Resource
 @resource_bp.route('/resources/<int:resource_id>', methods=['DELETE'])
 @jwt_required()
 def delete_resource(resource_id):
@@ -160,8 +166,9 @@ def delete_resource(resource_id):
         return jsonify({"msg": "Unauthorized: You do not own this resource"}), 403
 
     # Delete the file from the filesystem
-    if os.path.exists(res.file_url):
-        os.remove(res.file_url)
+    file_path = os.path.join(UPLOAD_FOLDER, os.path.basename(res.file_url))
+    if os.path.exists(file_path):
+        os.remove(file_path)
 
     try:
         db.session.delete(res)

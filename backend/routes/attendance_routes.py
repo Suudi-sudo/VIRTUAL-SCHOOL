@@ -1,12 +1,11 @@
 from flask import Blueprint, request, jsonify
-from flask_jwt_extended import jwt_required
+# from flask_jwt_extended import jwt_required
 from models import db, Attendance
 from datetime import datetime
 
 attendance_bp = Blueprint('attendance_bp', __name__)
 
 @attendance_bp.route('/attendance', methods=['GET'])
-@jwt_required()
 def get_attendance():
     page = request.args.get('page', 1, type=int)
     attendance_paginated = Attendance.query.paginate(page=page, per_page=10)
@@ -26,7 +25,6 @@ def get_attendance():
     }), 200
 
 @attendance_bp.route('/attendance', methods=['POST'])
-@jwt_required()
 def mark_attendance():
     data = request.get_json()
     if not data or not all(k in data for k in ('class_id', 'student_id', 'status', 'signed_by')):
@@ -43,7 +41,6 @@ def mark_attendance():
     return jsonify({"msg": "Attendance marked", "id": new_attendance.id}), 201
 
 @attendance_bp.route('/attendance/<int:attendance_id>', methods=['PUT'])
-@jwt_required()
 def update_attendance(attendance_id):
     attendance = Attendance.query.get_or_404(attendance_id)
     data = request.get_json()
@@ -55,7 +52,6 @@ def update_attendance(attendance_id):
     return jsonify({"msg": "Attendance updated"}), 200
 
 @attendance_bp.route('/attendance/<int:attendance_id>', methods=['DELETE'])
-@jwt_required()
 def delete_attendance(attendance_id):
     attendance = Attendance.query.get_or_404(attendance_id)
     db.session.delete(attendance)
