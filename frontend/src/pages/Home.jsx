@@ -3,7 +3,7 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
 import Navbar from "../components/Navbar";
-
+import { FaFacebookF, FaTwitter, FaInstagram, FaLinkedinIn } from 'react-icons/fa';
 function Home() {
   const navigate = useNavigate();
 
@@ -136,7 +136,6 @@ function Home() {
           <div className="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-5 g-3">
             {whyCards.map((item, idx) => (
               <div key={idx} className="col">
-                
                 <div
                   className="card text-white border-0 shadow h-100 d-flex flex-column"
                   style={{
@@ -241,6 +240,9 @@ function Home() {
             GET STARTED
           </button>
         </div>
+
+        {/* Footer Section */}
+        
       </div>
     </div>
   );

@@ -7,6 +7,7 @@ function MainComponent() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
+  const [editResource, setEditResource] = useState(null);
   const [formData, setFormData] = useState({
     class_id: "",
     description: "",
@@ -79,23 +80,92 @@ function MainComponent() {
     }
   };
 
+   // 🗑️ DELETE RESOURCE FUNCTION
+   const handleDelete = async (id) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(`http://localhost:5000/resources/${id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (!response.ok) throw new Error("Failed to delete resource");
+
+      setResources((prev) => prev.filter((resource) => resource.id !== id));
+      setSuccess("Resource deleted successfully!");
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+   // ✏️ EDIT RESOURCE FUNCTION
+   const handleEdit = (resource) => {
+    setEditResource(resource);
+    setFormData({
+      class_id: resource.class_id,
+      description: resource.description,
+      permissions: resource.permissions,
+      file: null, // File won't be updated
+    });
+    setIsModalOpen(true);
+  };
+   
+  // ✅ UPDATE RESOURCE FUNCTION
+  const handleUpdate = async () => {
+    if (!formData.class_id || !formData.permissions) {
+      setError("All fields are required.");
+      return;
+    }
+
+    const data = {
+      class_id: formData.class_id,
+      description: formData.description,
+      permissions: formData.permissions,
+    };
+
+    try {
+      setLoading(true);
+      setError(null);
+      setSuccess(null);
+
+      const token = localStorage.getItem("token");
+      const response = await fetch(`http://localhost:5000/resources/${id}`, {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) throw new Error(result.msg || "Failed to update");
+
+      setResources((prev) =>
+        prev.map((resource) => (resource.id === editResource.id ? { ...resource, ...data } : resource))
+      );
+      setIsModalOpen(false);
+      setEditResource(null);
+      setSuccess("Resource updated successfully!");
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="max-w-7xl mx-auto">
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-8">
-        <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4 md:mb-0">Resources</h1>
-        <button
-          onClick={() => setIsModalOpen(true)}
-          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-        >
-          Upload Resource
-        </button>
+        <h1 className="text-4xl font-bold text-gray-900 text-white mb-4 md:mb-0">Resources</h1>
+        
       </div>
 
       {/* Modal for Uploading Resources */}
-      {isModalOpen && (
+   
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
           <div className=" p-6 rounded-lg shadow-lg w-full max-w-md">
-            <h2 className="text-xl font-bold mb-4">Upload Resource</h2>
+            
             <input
               type="text-black"
               placeholder="Class ID"
@@ -123,39 +193,52 @@ function MainComponent() {
               className="w-full p-2 border rounded mb-4"
             />
             <div className="flex justify-end">
-              <button
-                onClick={() => setIsModalOpen(false)}
-                className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 mr-2"
-              >
-                Cancel
-              </button>
+             
               <button
                 onClick={handleFileUpload}
                 disabled={loading}
-                className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+                className="bg-blue-500 text-white  rounded hover:bg-blue-50"
               >
                 {loading ? "Uploading..." : "Upload"}
               </button>
             </div>
           </div>
         </div>
-      )}
+     
 
       {/* Display Resources */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
         {resources.map((resource) => (
-          <div key={resource.id} className="bg-white p-4 rounded-lg shadow">
-            <h3 className="text-black font-bold">{resource.description}</h3>
+          <div key={resource.id} className=" p-4 rounded-lg shadow">
+            <h3 className="text-white font-bold">{resource.description}</h3>
             <p>Class ID: {resource.class_id}</p>
             <p>Permissions: {resource.permissions}</p>
             <a
-              href={resource.file_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-blue-500 hover:underline"
-            >
-              View File
-            </a>
+                    href={resource.file_url.startsWith("http") ? resource.file_url : `http://127.0.0.1:5000${resource.file_url}`}
+                    
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center px-4 py-2 bg-black text-gray-900 rounded-lg hover:bg-gray-200 transition-colors"
+                              >
+                       view the note
+                    <i className="fas fa-external-link-alt ml-2"></i>
+                   </a>
+            <div className="">
+              {/* Small Edit Button */}
+              <button
+                onClick={() => handleEdit(resource)}
+                className=""
+              >
+                Edit
+              </button>
+
+              {/* Small Delete Button */}
+              <button
+                onClick={() => handleDelete(resource.id)}
+                className=""
+              >
+                Delete
+              </button>
+            </div>
           </div>
         ))}
       </div>
