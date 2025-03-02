@@ -9,7 +9,7 @@ function StudentsDashboard() {
         {/* Sidebar */}
         <Col xs={12} md={3} lg={2} className="bg-dark text-white vh-100" style={{ minHeight: '100vh' }}>
           <div className="p-3">
-            <h4 className="mb-4">Virtual </h4>
+            <h4 className="mb-4">Virtual School</h4>
             <ul className="list-unstyled">
               <li className="mb-3">
                 <Link to="/student/dashboard" className="text-white text-decoration-none">Dashboard</Link>
@@ -18,20 +18,17 @@ function StudentsDashboard() {
                 <Link to="/classes" className="text-white text-decoration-none">My Classes</Link>
               </li>
               <li className="mb-3">
-                <Link to="/resources" className="text-white text-decoration-none">Resources</Link>
+                <Link to="/study-material" className="text-white text-decoration-none">Resources</Link>
               </li>
               <li className="mb-3">
-                <Link to="/attendance" className="text-white text-decoration-none">Attendance</Link>
-              </li>
-              <li className="mb-3">
-                <Link to="/assessments" className="text-white text-decoration-none">Assessments</Link>
+                <Link to="/exam" className="text-white text-decoration-none">Assessments</Link>
               </li>
               <li className="mb-3">
                 <Link to="/chat" className="text-white text-decoration-none">Class Chat</Link>
               </li>
             </ul>
             <hr />
-            <Link to="/logout" className="text-white text-decoration-none">Sign Out</Link>
+            <Link to="/logout" className="text-white text-decoration-none">Log Out</Link>
           </div>
         </Col>
 
