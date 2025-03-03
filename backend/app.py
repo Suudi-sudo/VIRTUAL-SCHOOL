@@ -182,6 +182,7 @@ def create_app():
     from routes.resource_routes import resource_bp
     from routes.exam_routes import exam_bp
     from routes.chat_routes import chat_bp
+    from routes.class_routes import classes_bp
 
     app.register_blueprint(user_bp)
     app.register_blueprint(school_bp)
@@ -189,6 +190,7 @@ def create_app():
     app.register_blueprint(resource_bp)
     app.register_blueprint(exam_bp)
     app.register_blueprint(chat_bp)
+    app.register_blueprint(classes_bp)
 
     return app
 

@@ -113,8 +113,8 @@ function Chat({ classId = 1 }) {
 
   return (
     <div
-      className="container d-flex justify-content-center align-items-center"
-      style={{ minHeight: '100vh', backgroundColor: '#f8f9fa' }}
+      className="container-fluid d-flex justify-content-center align-items-center"
+      style={{ minHeight: '100vh', width: '100%', backgroundColor: '#001f3f', padding: 0 }}
     >
       <div className="card shadow" style={{ width: '600px', maxWidth: '100%', height: '80vh' }}>
         {/* Error Alert */}
@@ -136,7 +136,8 @@ function Chat({ classId = 1 }) {
               chats.map((chat) => (
                 <div key={chat.id} className="mb-3">
                   <div className="d-flex justify-content-between">
-                    <strong>{chat.sender_name}</strong>
+                    {/* Using a fallback for sender_name */}
+                    <strong>{chat.sender_name || 'Anonymous'}</strong>
                     <small className="text-muted">
                       {new Date(chat.timestamp).toLocaleString()}
                     </small>

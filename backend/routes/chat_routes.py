@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from models import db, Chat
+from models import db, Chat, User  # Ensure you import User as well
 from datetime import datetime
 
 chat_bp = Blueprint('chat_bp', __name__)
@@ -16,6 +16,7 @@ def get_chats(class_id):
         "id": chat.id,
         "class_id": chat.class_id,
         "sender_id": chat.sender_id,
+        "sender_name": chat.sender.username if chat.sender else "Anonymous",  # Added sender_name
         "message": chat.message,
         "timestamp": chat.timestamp.isoformat()
     } for chat in chats_paginated.items]
@@ -46,12 +47,17 @@ def create_chat():
     db.session.add(new_chat)
     db.session.commit()
 
+    # Retrieve sender's name using the User model
+    user = User.query.get(user_id)
+    sender_name = user.username if user else "Anonymous"
+
     return jsonify({
         "msg": "Chat message sent",
         "chat": {
             "id": new_chat.id,
             "class_id": new_chat.class_id,
             "sender_id": new_chat.sender_id,
+            "sender_name": sender_name,  # Added sender_name
             "message": new_chat.message,
             "timestamp": new_chat.timestamp.isoformat()
         }
@@ -66,6 +72,7 @@ def get_chat(chat_id):
         "id": chat.id,
         "class_id": chat.class_id,
         "sender_id": chat.sender_id,
+        "sender_name": chat.sender.username if chat.sender else "Anonymous",  # Added sender_name
         "message": chat.message,
         "timestamp": chat.timestamp.isoformat()
     }), 200
