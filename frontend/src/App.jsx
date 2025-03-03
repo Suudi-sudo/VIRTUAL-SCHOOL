@@ -24,7 +24,7 @@ import Attendance from "./pages/Educator/Attendance";
 import Resources from "./pages/Educator/Resources";
 import Permissions from "./pages/Educator/Permissions";
 import ClassChat from "./pages/Educator/ClassChat";
-import Exams from "./pages/Educator/Exams";
+import ExamManagementPage from "./pages/Educator/Exams";
 
 import StudentsDashboard from './pages/StudentDashboard/Dashboard';
 import Chat from './pages/StudentDashboard/Chat';
@@ -59,7 +59,7 @@ function App() {
                 <Route path="/educator/resources" element={<Resources />} />
                 <Route path="/educator/permissions" element={<Permissions />} />
                 <Route path="/educator/chat" element={<ClassChat />} />
-                <Route path="/educator/exams" element={<Exams />} />
+                <Route path="/educator/exams" element={<ExamManagementPage />} />
 
                 <Route path="/student/dashboard" element={<StudentsDashboard />} />
                 <Route path="/chat" element={<Chat />} />
