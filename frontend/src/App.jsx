@@ -14,6 +14,7 @@ import CreateSchool from './pages/OwnersDashboard/CreateSchool';
 // import Sidebar from "./pages/OwnersDashboard/Sidebar";
 import School from "./pages/OwnersDashboard/School";
 import SchoolDetail from "./pages/OwnersDashboard/Studentdetail";
+import ClassPage from "./pages/OwnersDashboard/Class";
 
 import "./App.css"; // Import the CSS file
 
@@ -50,6 +51,7 @@ function App() {
                 <Route path="/createschool" element={<CreateSchool />} />
                 <Route path="/schools" element={<School />} />
                 <Route path="/schools/:schoolId" element={<SchoolDetail />} />
+                <Route path="/classes" element={<ClassPage />} />
 
                 {/* <Route path="/student" element={<StudentDashboard />} />
                 <Route path="/exam" element={<ExamPage/>} /> */}
@@ -67,6 +69,7 @@ function App() {
                 <Route path="/grade-summary" element={<GradeSummary />} />
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/study-material" element={<StudyMaterial />} />
+                
                 </Routes>
         </Router>
     );

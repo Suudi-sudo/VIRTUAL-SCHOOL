@@ -65,30 +65,56 @@ const SchoolDetail = () => {
 
         <hr />
 
+        {/* Teachers Table */}
         <h5>Teachers in this school</h5>
         {teachers.length === 0 ? (
           <p>No teachers found for this school.</p>
         ) : (
-          <ul>
-            {teachers.map((t) => (
-              <li key={t.id}>
-                {t.username} - {t.email}
-              </li>
-            ))}
-          </ul>
+          <table className="table table-bordered table-hover">
+            <thead className="table-light">
+              <tr>
+                <th>ID</th>
+                <th>Username</th>
+                <th>Email</th>
+              </tr>
+            </thead>
+            <tbody>
+              {teachers.map((t) => (
+                <tr key={t.id}>
+                  <td>{t.id}</td>
+                  <td>{t.username}</td>
+                  <td>{t.email}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         )}
 
+        <hr />
+
+        {/* Students Table */}
         <h5>Students in this school</h5>
         {students.length === 0 ? (
           <p>No students found for this school.</p>
         ) : (
-          <ul>
-            {students.map((s) => (
-              <li key={s.id}>
-                {s.username} - {s.email}
-              </li>
-            ))}
-          </ul>
+          <table className="table table-bordered table-hover">
+            <thead className="table-light">
+              <tr>
+                <th>ID</th>
+                <th>Username</th>
+                <th>Email</th>
+              </tr>
+            </thead>
+            <tbody>
+              {students.map((s) => (
+                <tr key={s.id}>
+                  <td>{s.id}</td>
+                  <td>{s.username}</td>
+                  <td>{s.email}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         )}
       </div>
     </div>

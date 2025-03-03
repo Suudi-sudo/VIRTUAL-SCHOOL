@@ -80,6 +80,13 @@ const Sidebar = () => {
               Manage Schools
             </Link>
           </li>
+          {/* Classes*/}
+          <li className="nav-item mb-2">
+            <Link to="/classes" className="nav-link text-white">
+              <FaChalkboardTeacher className="me-2" />
+              Classes
+            </Link>
+            </li>
           {/* Teachers */}
           <li className="nav-item mb-2">
             <Link to="/teachers" className="nav-link text-white">
