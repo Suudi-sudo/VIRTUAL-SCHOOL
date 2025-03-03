@@ -1,9 +1,9 @@
+import os
 from flask import Blueprint, request, jsonify, send_from_directory
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from models import db, Resource
-import os
 from werkzeug.utils import secure_filename
 from datetime import datetime
+from models import db, Resource, User  # Import User model to get full user object
 
 # Initialize Blueprint
 resource_bp = Blueprint('resource_bp', __name__)
@@ -27,26 +27,35 @@ def validate_file_size(file):
     file.seek(0)  # Reset file pointer
     return file_size <= MAX_FILE_SIZE
 
-#  Serve Uploaded Files
+# Serve Uploaded Files
 @resource_bp.route('/uploads/<filename>', methods=['GET'])
 def serve_file(filename):
     """Serve files from the UPLOAD_FOLDER."""
     return send_from_directory(UPLOAD_FOLDER, filename)
 
-# Get All Resources (Paginated)
+# Get All Resources (Paginated) - restricted by school
 @resource_bp.route('/resources', methods=['GET'])
 @jwt_required()
 def get_resources():
     page = request.args.get('page', 1, type=int)
     per_page = request.args.get('per_page', 10, type=int)
 
-    resources_paginated = Resource.query.paginate(page=page, per_page=per_page, error_out=False)
+    user_id = get_jwt_identity()
+    user = User.query.get(user_id)  # Fetch full user object
+
+    if not user:
+        return jsonify({"msg": "User not found"}), 404
+
+    user_school_id = user.school_id  # Fetch the correct school_id
+
+    resources_paginated = Resource.query.filter(Resource.school_id == user_school_id) \
+        .paginate(page=page, per_page=per_page, error_out=False)
 
     resources = [{
         "id": res.id,
         "class_id": res.class_id,
         "uploaded_by": res.uploaded_by,
-        "file_url": f"http://127.0.0.1:5000/uploads/{os.path.basename(res.file_url)}",  # Use fixed base URL
+        "file_url": f"http://127.0.0.1:5000/uploads/{os.path.basename(res.file_url)}",
         "description": res.description,
         "permissions": res.permissions,
     } for res in resources_paginated.items]
@@ -58,22 +67,16 @@ def get_resources():
         "current_page": resources_paginated.page
     }), 200
 
-# Upload Resource
+# Upload Resource - associate with the user's school
 @resource_bp.route('/resources/upload', methods=['POST'])
 @jwt_required()
 def upload_resource():
-    # Debugging: Log request data
-    print("Request files:", request.files)
-    print("Request form data:", request.form)
-
-    # Validate file presence
     if 'file' not in request.files:
         return jsonify({"msg": "No file provided"}), 400
 
     file = request.files['file']
     data = request.form
 
-    # Validate file
     if file.filename == '':
         return jsonify({"msg": "No selected file"}), 400
     if not allowed_file(file.filename):
@@ -81,27 +84,29 @@ def upload_resource():
     if not validate_file_size(file):
         return jsonify({"msg": "File size exceeds the allowed limit (16 MB)"}), 400
 
-    # Validate required form fields
     class_id = data.get('class_id')
     permissions = data.get('permissions')
     if not class_id or not permissions:
         return jsonify({"msg": "class_id and permissions are required"}), 400
 
-    # Secure file name and save it
+    user_id = get_jwt_identity()
+    user = User.query.get(user_id)
+    if not user:
+        return jsonify({"msg": "User not found"}), 404
+
     filename = secure_filename(file.filename)
     file_path = os.path.join(UPLOAD_FOLDER, filename)
     file.save(file_path)
+    file_url = f"http://127.0.0.1:5000/uploads/{filename}"
 
-    # Generate the full HTTP URL for the file
-    file_url = f"http://127.0.0.1:5000/uploads/{filename}"  # Use fixed base URL
-
-    # Create new Resource instance
     new_resource = Resource(
         class_id=class_id,
-        uploaded_by=get_jwt_identity(),
-        file_url=file_url,  # Store the full HTTP URL
+        uploaded_by=user.id,
+        file_url=file_url,
         description=data.get('description', ''),
         permissions=permissions,
+        school_id=user.school_id,
+        # created_at=datetime.utcnow()
     )
 
     db.session.add(new_resource)
@@ -110,38 +115,51 @@ def upload_resource():
     return jsonify({
         "msg": "Resource uploaded successfully",
         "id": new_resource.id,
-        "file_url": new_resource.file_url  # Return the full HTTP URL
+        "file_url": new_resource.file_url
     }), 201
 
-# Get Single Resource by ID
+# Get Single Resource by ID - restricted by school
 @resource_bp.route('/resources/<int:resource_id>', methods=['GET'])
 @jwt_required()
 def get_resource(resource_id):
+    user_id = get_jwt_identity()
+    user = User.query.get(user_id)
+
+    if not user:
+        return jsonify({"msg": "User not found"}), 404
+
     res = Resource.query.get_or_404(resource_id)
+
+    if res.school_id != user.school_id:
+        return jsonify({"msg": "Unauthorized: You do not have access to this resource"}), 403
+
     return jsonify({
         "id": res.id,
         "class_id": res.class_id,
         "uploaded_by": res.uploaded_by,
-        "file_url": res.file_url,  # Already a full HTTP URL
+        "file_url": res.file_url,
         "description": res.description,
         "permissions": res.permissions,
     }), 200
 
-# Update Resource (Only Description & Permissions)
+# Update Resource (Only Description & Permissions) - restricted by school and uploader
 @resource_bp.route('/resources/<int:resource_id>', methods=['PUT'])
 @jwt_required()
 def update_resource(resource_id):
     res = Resource.query.get_or_404(resource_id)
-    data = request.get_json()
+    user_id = get_jwt_identity()
+    user = User.query.get(user_id)
 
+    if not user:
+        return jsonify({"msg": "User not found"}), 404
+
+    if res.school_id != user.school_id or res.uploaded_by != user.id:
+        return jsonify({"msg": "Unauthorized: You do not have access to update this resource"}), 403
+
+    data = request.get_json()
     if not data:
         return jsonify({"msg": "No input provided"}), 400
 
-    # Validate permissions (optional: ensure only the owner can update)
-    if res.uploaded_by != get_jwt_identity():
-        return jsonify({"msg": "Unauthorized: You do not own this resource"}), 403
-
-    # Update fields
     if 'description' in data:
         res.description = data['description']
     if 'permissions' in data:
@@ -155,17 +173,20 @@ def update_resource(resource_id):
 
     return jsonify({"msg": "Resource updated"}), 200
 
-# Delete a Resource
+# Delete a Resource - restricted by school and uploader
 @resource_bp.route('/resources/<int:resource_id>', methods=['DELETE'])
 @jwt_required()
 def delete_resource(resource_id):
     res = Resource.query.get_or_404(resource_id)
+    user_id = get_jwt_identity()
+    user = User.query.get(user_id)
 
-    # Validate permissions (optional: ensure only the owner can delete)
-    if res.uploaded_by != get_jwt_identity():
-        return jsonify({"msg": "Unauthorized: You do not own this resource"}), 403
+    if not user:
+        return jsonify({"msg": "User not found"}), 404
 
-    # Delete the file from the filesystem
+    if res.school_id != user.school_id or res.uploaded_by != user.id:
+        return jsonify({"msg": "Unauthorized: You do not have access to delete this resource"}), 403
+
     file_path = os.path.join(UPLOAD_FOLDER, os.path.basename(res.file_url))
     if os.path.exists(file_path):
         os.remove(file_path)
