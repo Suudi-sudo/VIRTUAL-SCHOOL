@@ -1,3 +1,4 @@
+
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required
 from models import db, Exam, ExamSubmission
@@ -6,7 +7,6 @@ from datetime import datetime, timedelta
 exam_bp = Blueprint('exam_bp', __name__)
 
 @exam_bp.route('/exams', methods=['GET'])
-@jwt_required()
 def get_exams():
     page = request.args.get('page', 1, type=int)
     exams_paginated = Exam.query.paginate(page=page, per_page=10)
@@ -26,7 +26,6 @@ def get_exams():
     }), 200
 
 @exam_bp.route('/exams', methods=['POST'])
-@jwt_required()
 def create_exam():
     data = request.get_json()
     if not data or not all(k in data for k in ('class_id', 'exam_title', 'start_time', 'duration_minutes', 'status')):
@@ -47,7 +46,6 @@ def create_exam():
     return jsonify({"msg": "Exam created", "id": new_exam.id}), 201
 
 @exam_bp.route('/exams/<int:exam_id>', methods=['GET'])
-@jwt_required()
 def get_exam(exam_id):
     exam = Exam.query.get_or_404(exam_id)
     return jsonify({
@@ -60,7 +58,6 @@ def get_exam(exam_id):
     }), 200
 
 @exam_bp.route('/exams/<int:exam_id>', methods=['PUT'])
-@jwt_required()
 def update_exam(exam_id):
     exam = Exam.query.get_or_404(exam_id)
     data = request.get_json()
@@ -81,7 +78,6 @@ def update_exam(exam_id):
     return jsonify({"msg": "Exam updated"}), 200
 
 @exam_bp.route('/exams/<int:exam_id>', methods=['DELETE'])
-@jwt_required()
 def delete_exam(exam_id):
     exam = Exam.query.get_or_404(exam_id)
     db.session.delete(exam)
@@ -91,7 +87,6 @@ def delete_exam(exam_id):
 # --- Exam Submission Endpoints ---
 
 @exam_bp.route('/exams/<int:exam_id>/submissions', methods=['GET'])
-@jwt_required()
 def get_exam_submissions(exam_id):
     page = request.args.get('page', 1, type=int)
     submissions_paginated = ExamSubmission.query.filter_by(exam_id=exam_id).paginate(page=page, per_page=10)
@@ -109,7 +104,6 @@ def get_exam_submissions(exam_id):
     }), 200
 
 @exam_bp.route('/exams/<int:exam_id>/submissions', methods=['POST'])
-@jwt_required()
 def create_exam_submission(exam_id):
     data = request.get_json()
     if not data or not all(k in data for k in ('student_id', 'answers_json')):
@@ -125,7 +119,6 @@ def create_exam_submission(exam_id):
     return jsonify({"msg": "Submission created", "id": new_submission.id}), 201
 
 @exam_bp.route('/exams/<int:exam_id>/submissions/<int:submission_id>', methods=['PUT'])
-@jwt_required()
 def update_exam_submission(exam_id, submission_id):
     submission = ExamSubmission.query.filter_by(id=submission_id, exam_id=exam_id).first_or_404()
     data = request.get_json()
@@ -139,7 +132,6 @@ def update_exam_submission(exam_id, submission_id):
     return jsonify({"msg": "Submission updated"}), 200
 
 @exam_bp.route('/exams/<int:exam_id>/submissions/<int:submission_id>', methods=['DELETE'])
-@jwt_required()
 def delete_exam_submission(exam_id, submission_id):
     submission = ExamSubmission.query.filter_by(id=submission_id, exam_id=exam_id).first_or_404()
     db.session.delete(submission)
