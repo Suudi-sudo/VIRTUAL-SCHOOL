@@ -129,6 +129,15 @@ function Home() {
             </div>
           ))}
         </div>
+          {/* Action Button */}
+          <div className="text-center mt-4">
+          <button
+            className="btn btn-primary btn-lg px-4 py-3"
+            onClick={() => navigate("/register")}
+          >
+            GET STARTED
+          </button>
+        </div>
 
         {/* Why Choose Us? */}
         <div className="text-white mt-5">
@@ -231,15 +240,7 @@ function Home() {
           </div>
         </div>
 
-        {/* Action Button */}
-        <div className="text-center mt-4">
-          <button
-            className="btn btn-primary btn-lg px-4 py-3"
-            onClick={() => navigate("/register")}
-          >
-            GET STARTED
-          </button>
-        </div>
+      
 
         {/* Footer Section */}
         
