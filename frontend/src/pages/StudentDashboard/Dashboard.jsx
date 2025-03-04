@@ -10,6 +10,7 @@ import {
   FaComments, 
   FaSignOutAlt 
 } from 'react-icons/fa';
+import LogoutButton from '../../components/Logout';
 
 function StudentsDashboard() {
   const navigate = useNavigate();
@@ -102,15 +103,9 @@ function StudentsDashboard() {
         </ul>
         <hr className="border-secondary w-100" />
         {/* Logout Link calling handleLogout */}
-        <Link
-          to="/logout"
-          onClick={handleLogout}
-          className="text-danger text-decoration-none d-flex align-items-center"
-          style={{ transition: 'color 0.2s' }}
-        >
-          <FaSignOutAlt className="me-2" />
-          Log Out
-        </Link>
+        <div className="mt-auto">
+          <LogoutButton />
+        </div>
       </div>
 
       {/* Main Content */}

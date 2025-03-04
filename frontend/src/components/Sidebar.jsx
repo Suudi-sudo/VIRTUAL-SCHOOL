@@ -1,6 +1,7 @@
 // src/components/Sidebar.jsx
 import React from 'react'
 import { NavLink } from 'react-router-dom'
+import LogoutButton from './Logout' // Import the new logout component
 
 export default function Sidebar() {
   return (
@@ -66,16 +67,7 @@ export default function Sidebar() {
         >
           Settings
         </NavLink>
-        <NavLink
-          to="/logout"
-          className="nav-link text-white mt-5"
-          style={({ isActive }) => ({
-            fontWeight: isActive ? 'bold' : 'normal',
-            backgroundColor: isActive ? '#495057' : '',
-          })}
-        >
-          Logout
-        </NavLink>
+        <LogoutButton />
       </nav>
     </div>
   )
