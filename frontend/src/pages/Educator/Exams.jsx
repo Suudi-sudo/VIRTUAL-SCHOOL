@@ -1,296 +1,535 @@
-import React, { useState, useEffect } from "react";
-import { FiEdit2, FiTrash2, FiEye, FiPlus, FiSearch, FiFilter } from "react-icons/fi";
-import { format } from "date-fns";
+import React, { useState, useEffect, useCallback } from "react";
 
-const ExamManagement = () => {
-  const [exams, setExams] = useState([
-    {
-      id: 1,
-      classId: "CS101",
-      title: "Advanced Mathematics",
-      startTime: "2024-02-20T10:00:00",
-      duration: 180,
-      status: "Pending",
-    },
-    {
-      id: 2,
-      classId: "CS102",
-      title: "Data Structures",
-      startTime: "2024-02-22T14:00:00",
-      duration: 120,
-      status: "Active",
-    },
-  ]);
+const BASE_URL = "http://127.0.0.1:5000"; // backend URL
 
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
-  const [selectedExam, setSelectedExam] = useState(null);
-  const [searchTerm, setSearchTerm] = useState("");
+function ExamManagementPage() {
+  const [exams, setExams] = useState({
+    exams: [],
+    total: 0,
+    pages: 0,
+    currentPage: 1,
+  });
+  const [quizzes, setQuizzes] = useState([]);
+  const [submissions, setSubmissions] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const [formData, setFormData] = useState({
-    classId: "",
-    title: "",
-    startTime: "",
-    duration: "",
-    status: "Pending",
+  const [editingExamId, setEditingExamId] = useState(null);
+
+  // Exam Form Data
+  const defaultFormData = {
+    class_id: "",
+    exam_title: "",
+    start_time: "",
+    duration_minutes: "",
+    status: "scheduled", // Default status
+    external_url: "", // Add external_url field
+  };
+  const [formData, setFormData] = useState(defaultFormData);
+
+  // Quiz Form Data
+  const [quizFormData, setQuizFormData] = useState({
+    quiz_title: "",
+    questions: [],
   });
 
-  const handleCreate = (e) => {
-    e.preventDefault();
-    const newExam = {
-      id: exams.length + 1,
-      ...formData,
-    };
-    setExams([...exams, newExam]);
-    setIsCreateModalOpen(false);
-    setFormData({
-      classId: "",
-      title: "",
-      startTime: "",
-      duration: "",
-      status: "Pending",
-    });
-  };
+  // Fetch exams and quizzes
+  const fetchExamsAndQuizzes = useCallback(async () => {
+    try {
+      setLoading(true);
+      const [examsResponse, quizzesResponse] = await Promise.all([
+        fetch(`${BASE_URL}/exams?page=${currentPage}`),
+        fetch(`http://127.0.0.1:5000/quizzes`),
+      ]);
 
-  const handleDelete = (id) => {
-    if (window.confirm("Are you sure you want to delete this exam?")) {
-      setExams(exams.filter((exam) => exam.id !== id));
+      if (!examsResponse.ok || !quizzesResponse.ok) {
+        throw new Error("Failed to fetch data");
+      }
+
+      const examsData = await examsResponse.json();
+      const quizzesData = await quizzesResponse.json();
+
+      setExams({
+        exams: examsData.exams,
+        total: examsData.total,
+        pages: examsData.pages,
+        currentPage: examsData.current_page,
+      });
+      setQuizzes(quizzesData);
+    } catch (err) {
+      setError("Failed to load data");
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  }, [currentPage]);
+
+  // Fetch quiz submissions
+  const fetchSubmissions = async (quizId) => {
+    try {
+      const response = await fetch(`${BASE_URL}/quizzes/${quizId}/submissions`);
+      if (!response.ok) {
+        throw new Error("Failed to fetch submissions");
+      }
+      const data = await response.json();
+      console.log("Submissions data:", data); // Debugging: Log the response
+      setSubmissions(data.submissions); // Ensure the response contains a "submissions" field
+    } catch (err) {
+      setError("Failed to load submissions");
+      console.error(err);
+    }
+  };
+  useEffect(() => {
+    fetchExamsAndQuizzes();
+  }, [fetchExamsAndQuizzes]);
+
+  // Handle exam creation
+  const handleCreateExam = async (e) => {
+    e.preventDefault();
+    try {
+      const payload = JSON.stringify(formData);
+      console.log("Sending Data", payload);
+
+      const response = await fetch(`${BASE_URL}/exams`, {
+        method: "POST",
+        body: payload,
+        headers: { "Content-Type": "application/json" },
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to create exam");
+      }
+
+      setSuccess("Exam created successfully");
+      setFormData(defaultFormData);
+      fetchExamsAndQuizzes(); // Refresh the exams list
+    } catch (err) {
+      setError("Failed to create exam");
+      console.error(err);
     }
   };
 
-  const handleView = (exam) => {
-    setSelectedExam(exam);
-    setIsDetailModalOpen(true);
+  // Handle exam update
+  const handleUpdateExam = async (e) => {
+    e.preventDefault();
+    try {
+      const response = await fetch(`${BASE_URL}/exams/${editingExamId}`, {
+        method: "PUT",
+        body: JSON.stringify(formData),
+        headers: { "Content-Type": "application/json" },
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to update exam");
+      }
+
+      setSuccess("Exam updated successfully");
+      setFormData(defaultFormData);
+      setEditingExamId(null);
+      fetchExamsAndQuizzes(); // Refresh the exams list
+    } catch (err) {
+      setError("Failed to update exam");
+      console.error(err);
+    }
   };
 
-  const filteredExams = exams.filter(
-    (exam) =>
-      exam.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      exam.classId.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Combined handler for exam form submission
+  const handleSubmit = (e) => {
+    if (editingExamId) {
+      handleUpdateExam(e); // Update exam if editingExamId is set
+    } else {
+      handleCreateExam(e); // Create exam if editingExamId is not set
+    }
+  };
+
+  // Handle exam deletion
+  const handleDelete = async (id) => {
+    try {
+      const response = await fetch(`${BASE_URL}/exams/${id}`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to delete exam");
+      }
+
+      setSuccess("Exam deleted successfully");
+      fetchExamsAndQuizzes(); // Refresh the exams list
+    } catch (err) {
+      setError("Failed to delete exam");
+      console.error(err);
+    }
+  };
+
+  // Handle editing an exam
+  const handleEdit = (exam) => {
+    setFormData({
+      class_id: exam.class_id,
+      exam_title: exam.exam_title,
+      start_time: exam.start_time,
+      duration_minutes: exam.duration_minutes,
+      status: exam.status,
+      external_url: exam.external_url,
+    });
+    setEditingExamId(exam.id);
+  };
+
+  // Quiz Creation Logic
+  const handleAddQuestion = () => {
+    setQuizFormData({
+      ...quizFormData,
+      questions: [
+        ...quizFormData.questions,
+        { question: "", options: ["", "", "", ""], correctAnswer: "" },
+      ],
+    });
+  };
+
+  const handleQuizInputChange = (e, questionIndex, optionIndex = null) => {
+    const { name, value } = e.target;
+    const updatedQuestions = [...quizFormData.questions];
+
+    if (name === "question") {
+      // Update the question text
+      updatedQuestions[questionIndex].question = value;
+    } else if (name === "option") {
+      // Update the specific option
+      updatedQuestions[questionIndex].options[optionIndex] = value;
+    } else if (name === "correctAnswer") {
+      // Update the correct answer
+      updatedQuestions[questionIndex].correctAnswer = parseInt(value, 10);
+    }
+
+    setQuizFormData({ ...quizFormData, questions: updatedQuestions });
+  };
+
+  const handleCreateQuiz = async () => {
+    // Prepare the payload
+    const payload = {
+      quiz_title: quizFormData.quiz_title,
+      class_id: 1, // Replace with the actual class ID or fetch it dynamically
+      questions: quizFormData.questions.map((q) => ({
+        question: q.question,
+        options: q.options, // Ensure this is an array of 4 options
+        correctAnswer: q.correctAnswer, // Ensure this is a number (index of the correct option)
+      })),
+    };
+  
+    console.log("Sending payload:", payload); // Debugging: Log the payload
+  
+    try {
+      const response = await fetch(`${BASE_URL}/quizzes`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+  
+      if (!response.ok) {
+        const errorData = await response.json(); // Parse the error response from the server
+        throw new Error(`HTTP error! Status: ${response.status}, Message: ${errorData.error}`);
+      }
+  
+      const data = await response.json();
+      console.log("Quiz created:", data);
+      setSuccess("Quiz created successfully");
+      setQuizFormData({ quiz_title: "", questions: [] }); // Reset form
+      fetchExamsAndQuizzes(); // Refresh the quizzes list
+    } catch (error) {
+      setError(`Failed to create quiz: ${error.message}`);
+      console.error("Error:", error);
+    }
+  };
+
+  // Render loading state
+  if (loading) {
+    return <div className="text-center mt-5">Loading...</div>;
+  }
+
+  // Render error state
+  if (error) {
+    return <div className="alert alert-danger text-center mt-5">{error}</div>;
+  }
 
   return (
-    <div className="min-h-screen bg-gray-100 p-4">
-      <div className="max-w-7xl mx-auto">
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <div className="flex justify-between items-center mb-6">
-            <h1 className="text-2xl font-bold text-gray-800">Exam Management</h1>
-            <button
-              onClick={() => setIsCreateModalOpen(true)}
-              className="bg-blue-600 text-white px-4 py-2 rounded-md flex items-center gap-2 hover:bg-blue-700 transition-colors"
+
+    <div
+    className="position-relative min-vh-100"
+    style={{
+      background:
+        'url("https://via.placeholder.com/1500") center center / cover no-repeat',
+    }}
+        >
+    <div className="container mt-5">
+      <h1 className="text-center mb-4">Exam  Management</h1>
+
+      {error && <div className="alert alert-danger">{error}</div>}
+      {success && <div className="alert alert-success">{success}</div>}
+
+      {/* Exam Creation/Update Form */}
+      <form onSubmit={handleSubmit} className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
+        <h3 className="text-white">Random External Exams</h3>
+        <div className="row g-3">
+          <div className="col-md-3">
+            <input
+              type="number"
+              className="form-control"
+              placeholder="Class ID"
+              value={formData.class_id}
+              onChange={(e) => setFormData({ ...formData, class_id: e.target.value })}
+              required
+            />
+          </div>
+          <div className="col-md-3 text-white">
+            <input
+              type="text"
+              className="form-control"
+              placeholder="Exam Title"
+              value={formData.exam_title}
+              onChange={(e) => setFormData({ ...formData, exam_title: e.target.value })}
+              required
+            />
+          </div>
+          <div className="col-md-3">
+            <input
+              type="datetime-local"
+              className="form-control"
+              value={formData.start_time}
+              onChange={(e) => setFormData({ ...formData, start_time: e.target.value })}
+              required
+            />
+          </div>
+          <div className="col-md-3">
+            <input
+              type="number"
+              className="form-control"
+              placeholder="Duration (minutes)"
+              value={formData.duration_minutes}
+              onChange={(e) => setFormData({ ...formData, duration_minutes: e.target.value })}
+              required
+            />
+          </div>
+          <div className="col-md-3">
+            <select
+              className="form-select"
+              value={formData.status}
+              onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+              required
             >
-              <FiPlus /> Create Exam
-            </button>
+              <option value="scheduled">Scheduled</option>
+              <option value="ongoing">Ongoing</option>
+              <option value="completed">Completed</option>
+            </select>
           </div>
-
-          <div className="flex gap-4 mb-6">
-            <div className="flex-1 relative">
-              <FiSearch className="absolute left-3 top-3 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Search exams..."
-                className="w-full pl-10 pr-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-            <button className="px-4 py-2 border rounded-md flex items-center gap-2 hover:bg-gray-50">
-              <FiFilter /> Filter
-            </button>
-          </div>
-
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Exam ID</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Class ID</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Start Time</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Duration</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {filteredExams.map((exam) => (
-                  <tr key={exam.id}>
-                    <td className="px-6 py-4 whitespace-nowrap">{exam.id}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">{exam.classId}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">{exam.title}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      {format(new Date(exam.startTime), "PPp")}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">{exam.duration} min</td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span
-                        className={`px-2 py-1 rounded-full text-xs ${exam.status === "Active" ? "bg-green-100 text-green-800" : exam.status === "Pending" ? "bg-yellow-100 text-yellow-800" : "bg-gray-100 text-gray-800"}`}
-                      >
-                        {exam.status}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => handleView(exam)}
-                          className="text-blue-600 hover:text-blue-800"
-                        >
-                          <FiEye />
-                        </button>
-                        <button className="text-green-600 hover:text-green-800">
-                          <FiEdit2 />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(exam.id)}
-                          className="text-red-600 hover:text-red-800"
-                        >
-                          <FiTrash2 />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="col-md-3">
+            <input
+              type="text"
+              className="form-control"
+              placeholder="External URL (optional)"
+              value={formData.external_url}
+              onChange={(e) => setFormData({ ...formData, external_url: e.target.value })}
+            />
           </div>
         </div>
+        <button type="submit" className="btn btn-primary mt-3">
+          {editingExamId ? "Update Exam" : "Create Exam"}
+        </button>
+        {editingExamId && (
+          <button
+            type="button"
+            className="btn btn-secondary mt-3 ms-2"
+            onClick={() => {
+              setFormData(defaultFormData);
+              setEditingExamId(null);
+            }}
+          >
+            Cancel Edit
+          </button>
+        )}
+      </form>
+
+      {/* Quiz Creation Form */}
+      <form onSubmit={(e) => { e.preventDefault(); handleCreateQuiz(); }} className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
+        <h3 className="text-white">Create Exam</h3>
+        <div className="mb-3 text-white">
+          <input
+            type="text"
+            className="form-control"
+            placeholder="Quiz Title"
+            value={quizFormData.quiz_title}
+            onChange={(e) => setQuizFormData({ ...quizFormData, quiz_title: e.target.value })}
+            required
+          />
+        </div>
+        {quizFormData.questions.map((question, questionIndex) => (
+          <div key={questionIndex} className="mb-3">
+            {/* Question Input */}
+            <input
+              type="text"
+              className="form-control mb-2"
+              placeholder="Question"
+              name="question"
+              value={question.question}
+              onChange={(e) => handleQuizInputChange(e, questionIndex)}
+              required
+            />
+
+            {/* Options Input */}
+            {question.options.map((option, optionIndex) => (
+              <input
+                key={optionIndex}
+                type="text"
+                className="form-control mb-2"
+                placeholder={`Option ${optionIndex + 1}`}
+                name="option"
+                value={option}
+                onChange={(e) => handleQuizInputChange(e, questionIndex, optionIndex)}
+                required
+              />
+            ))}
+
+            {/* Correct Answer Dropdown */}
+            <select
+              className="form-select"
+              name="correctAnswer"
+              value={question.correctAnswer}
+              onChange={(e) => handleQuizInputChange(e, questionIndex)}
+              required
+            >
+              <option value="">Select Correct Answer</option>
+              {question.options.map((_, index) => (
+                <option key={index} value={index}>
+                  Option {index + 1}
+                </option>
+              ))}
+            </select>
+          </div>
+        ))}
+        <button type="button" className="btn btn-secondary mb-3" onClick={handleAddQuestion}>
+          Add Question
+        </button>
+        <button type="submit" className="btn btn-primary">
+          Create Exam
+        </button>
+      </form>
+
+      {/* Quizzes List for Students */}
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
+        <h3 className="text-white">Available Exams</h3>
+        <ul className="list-group">
+          {quizzes.map((quiz) => (
+            <li key={quiz.id} className="list-group-item d-flex justify-content-between align-items-center">
+              {quiz.quiz_title}
+              <button className="btn btn-primary" onClick={() => fetchSubmissions(quiz.id)}>
+                View Submissions
+              </button>
+            </li>
+          ))}
+        </ul>
       </div>
 
-      {/* Create Exam Modal */}
-      {isCreateModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg max-w-md w-full p-6">
-            <h2 className="text-xl font-bold mb-4">Create New Exam</h2>
-            <form onSubmit={handleCreate}>
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Class ID</label>
-                  <input
-                    type="text-black"
-                    required
-                    className="mt-1 block w-full rounded-md border-gray-300  focus:border-blue-500 focus:ring-blue-500"
-                    value={formData.classId}
-                    onChange={(e) =>
-                      setFormData({ ...formData, classId: e.target.value })
-                    }
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Title</label>
-                  <input
-                    type="text-black"
-                    required
-                    className="mt-1 block w-full rounded-md border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                    value={formData.title}
-                    onChange={(e) =>
-                      setFormData({ ...formData, title: e.target.value })
-                    }
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Start Time</label>
-                  <input
-                    type="datetime-local"
-                    required
-                    className="mt-1 block w-full rounded-md border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                    value={formData.startTime}
-                    onChange={(e) =>
-                      setFormData({ ...formData, startTime: e.target.value })
-                    }
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Duration (minutes)</label>
-                  <input
-                    type="number"
-                    required
-                    min="1"
-                    className="mt-1 block w-full rounded-md border-gray-300  focus:border-blue-500 focus:ring-blue-500"
-                    value={formData.duration}
-                    onChange={(e) =>
-                      setFormData({ ...formData, duration: e.target.value })
-                    }
-                  />
-                </div>
-                <div>
-                  <label className="block text-black font-large text-gray-700">Status</label>
-                  <select
-                    className="mt-1 block w-full rounded-md border-gray-300  focus:border-blue-500 focus:ring-blue-500"
-                    value={formData.status}
-                    onChange={(e) =>
-                      setFormData({ ...formData, status: e.target.value })
-                    }
-                  >
-                    <option value="Pending">Pending</option>
-                    <option value="Active">Active</option>
-                    <option value="Completed">Completed</option>
-                  </select>
-                </div>
-              </div>
-              <div className="mt-6 flex justify-end gap-3">
-                <button
-                  type="button"
-                  onClick={() => setIsCreateModalOpen(false)}
-                  className="px-4 py-2 border rounded-md hover:bg-gray-50"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-blue-600 text-black rounded-md hover:bg-blue-700"
-                >
-                  Create
-                </button>
-              </div>
-            </form>
-          </div>
+      {/* Submissions Section */}
+      {submissions.length > 0 && (
+        <div className="card p-4 mb-4">
+          <h3>Submissions for {submissions[0].quiz_title}</h3>
+          <table className="table table-striped table-hover">
+            <thead>
+              <tr>
+                <th>Student ID</th>
+                <th>Answers</th>
+                <th>Score</th>
+                <th>Submitted At</th>
+              </tr>
+            </thead>
+            <tbody>
+              {submissions.map((submission) => (
+                <tr key={submission.student_id}>
+                  <td>{submission.student_id}</td>
+                  <td>{JSON.stringify(submission.answers)}</td>
+                  <td>{submission.score}</td>
+                  <td>{new Date(submission.submitted_at).toLocaleString()}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       )}
 
-      {/* View Exam Modal */}
-      {isDetailModalOpen && selectedExam && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg max-w-md w-full p-6">
-            <h2 className="text-xl font-bold mb-4">Exam Details</h2>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Exam ID</label>
-                <p className="mt-1">{selectedExam.id}</p>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Class ID</label>
-                <p className="mt-1">{selectedExam.classId}</p>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Title</label>
-                <p className="mt-1">{selectedExam.title}</p>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Start Time</label>
-                <p className="mt-1">{format(new Date(selectedExam.startTime), "PPp")}</p>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Duration</label>
-                <p className="mt-1">{selectedExam.duration} minutes</p>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Status</label>
-                <p className="mt-1">{selectedExam.status}</p>
-              </div>
-            </div>
-            <div className="mt-6 flex justify-end">
+      {/* Exams Table */}
+      <table className="table table-striped table-hover">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Class ID</th>
+            <th>Exam Title</th>
+            <th>Start Time</th>
+            <th>Duration (minutes)</th>
+            <th>Status</th>
+            <th>External URL</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {exams.exams.map((exam) => (
+            <tr key={exam.id}>
+              <td>{exam.id}</td>
+              <td>{exam.class_id}</td>
+              <td>{exam.exam_title}</td>
+              <td>{new Date(exam.start_time).toLocaleString()}</td>
+              <td>{exam.duration_minutes}</td>
+              <td>{exam.status}</td>
+              <td>
+                {exam.external_url ? (
+                  <a href={exam.external_url} target="_blank" rel="noopener noreferrer">
+                    Open Exam
+                  </a>
+                ) : (
+                  "No link provided"
+                )}
+              </td>
+              <td>
+                <button
+                  className="btn btn-warning btn-sm me-2"
+                  onClick={() => handleEdit(exam)}
+                >
+                  Edit
+                </button>
+                <button
+                  className="btn btn-danger btn-sm"
+                  onClick={() => handleDelete(exam.id)}
+                >
+                  Delete
+                </button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+
+      {/* Pagination */}
+      <nav>
+        <ul className="pagination">
+          {Array.from({ length: exams.pages }, (_, i) => (
+            <li
+              key={i + 1}
+              className={`page-item ${currentPage === i + 1 ? "active" : ""}`}
+            >
               <button
-                onClick={() => setIsDetailModalOpen(false)}
-                className="px-4 py-2 bg-gray-200 rounded-md hover:bg-gray-300"
+                className="page-link"
+                onClick={() => setCurrentPage(i + 1)}
               >
-                Close
+                {i + 1}
               </button>
-            </div>
-          </div>
-        </div>
-      )}
+            </li>
+          ))}
+        </ul>
+      </nav>
+    </div>
     </div>
   );
-};
+}
 
-export default ExamManagement;
+export default ExamManagementPage;

@@ -149,17 +149,8 @@ const Login = () => {
 
                   {/* Role Selection Dropdown */}
                   <div className="mb-3">
-                    <label className="form-label">Role</label>
-                    <select
-                      name="role"
-                      value={formData.role}
-                      onChange={handleChange}
-                      className="form-select form-select-lg"
-                    >
-                      <option value="student">Student</option>
-                      <option value="educator">Educator</option>
-                      <option value="owner">Owner</option>
-                    </select>
+                   
+                    
                   </div>
 
                   <button type="submit" className="btn btn-primary btn-lg w-100 mb-3">
