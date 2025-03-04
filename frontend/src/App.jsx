@@ -48,6 +48,17 @@ function App() {
                         <Route path="/login" element={<Login />} />
                         <Route path="/register" element={<Register />} />
 
+                <Route path="/admin" element={<Dashboard />} />
+                <Route path="/students" element={<Students />} />
+                <Route path="/teachers" element={<Teachers />} />
+                <Route path="/settings" element={<Settings />} />
+                <Route path="/createschool" element={<CreateSchool />} />
+                <Route path="/schools" element={<School />} />
+                <Route path="/schools/:schoolId" element={<SchoolDetail />} />
+                <Route path="/classes" element={<ClassPage />} />
+                <Route path="/classes/:schoolId" element={<ClassPage />} />
+
+
                         <Route path="/admin" element={<Dashboard />} />
                         <Route path="/students" element={<Students />} />
                         <Route path="/teachers" element={<Teachers />} />
@@ -56,6 +67,7 @@ function App() {
                         <Route path="/schools" element={<School />} />
                         <Route path="/schools/:schoolId" element={<SchoolDetail />} />
                         <Route path="/classes" element={<ClassPage />} />
+
 
                         {/* <Route path="/student" element={<StudentDashboard />} />
                 <Route path="/exam" element={<ExamPage/>} /> */}

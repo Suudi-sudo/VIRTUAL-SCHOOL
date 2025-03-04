@@ -15,7 +15,7 @@ const CreateSchool = () => {
   const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
-  const userId = localStorage.getItem("user_id"); // set after login
+  const userId = localStorage.getItem("user.email"); // set after login
 
   const handleSubmit = async (e) => {
     e.preventDefault();

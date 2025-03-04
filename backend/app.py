@@ -122,7 +122,7 @@ def create_app():
                     email=user_info['email'],
                     profile_pic=user_info.get('picture'),
                     google_id=user_info.get('sub'),
-                    role='user'  # Set a default role
+                    role='admin'  # Set a default role
                 )
                 db.session.add(user)
                 db.session.commit()
