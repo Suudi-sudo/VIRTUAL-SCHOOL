@@ -1,8 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import Sidebar from './Sidebar';
 
-function ClassPage({ currentSchoolId }) {
+function ClassPage() {
+  // Grab the URL param named "schoolId"
+  const { schoolId } = useParams();
+
   const [classes, setClasses] = useState([]);
   const [newClass, setNewClass] = useState({ name: '', educator_id: '' });
   const [error, setError] = useState(null);
@@ -11,13 +15,14 @@ function ClassPage({ currentSchoolId }) {
   const BASE_URL = 'http://localhost:5000';
 
   useEffect(() => {
-    // If currentSchoolId is undefined, skip fetching
-    if (currentSchoolId == null) {
+    // If no schoolId in the URL, show error and skip fetching
+    if (!schoolId) {
       setError('No valid school ID provided.');
       return;
     }
 
-    fetch(`${BASE_URL}/classes`)
+    // Pass school_id as a query param so the Flask code does the filtering
+    fetch(`${BASE_URL}/classes?school_id=${schoolId}`)
       .then((response) => {
         if (!response.ok) {
           throw new Error('Failed to fetch classes');
@@ -25,13 +30,10 @@ function ClassPage({ currentSchoolId }) {
         return response.json();
       })
       .then((data) => {
-        const filteredClasses = data.filter(
-          (cls) => cls.school_id.toString() === currentSchoolId.toString()
-        );
-        setClasses(filteredClasses);
+        setClasses(data); // The server already filters by school_id
       })
       .catch((err) => setError(err.message));
-  }, [currentSchoolId]);
+  }, [schoolId]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -40,12 +42,12 @@ function ClassPage({ currentSchoolId }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (currentSchoolId == null) {
+    if (!schoolId) {
       setError('No valid school ID provided.');
       return;
     }
 
-    const classData = { ...newClass, school_id: currentSchoolId };
+    const classData = { ...newClass, school_id: schoolId };
 
     fetch(`${BASE_URL}/classes`, {
       method: 'POST',
@@ -54,12 +56,16 @@ function ClassPage({ currentSchoolId }) {
     })
       .then((response) => {
         if (!response.ok) {
-          throw new Error('Failed to create class');
+          // If server returns an error JSON, parse it
+          return response.json().then((err) => {
+            throw new Error(err.error || 'Failed to create class');
+          });
         }
         return response.json();
       })
       .then((data) => {
-        if (data.school_id.toString() === currentSchoolId.toString()) {
+        // Only add if the new class matches the current URL's schoolId
+        if (data.school_id.toString() === schoolId.toString()) {
           setClasses((prev) => [...prev, data]);
         }
         setNewClass({ name: '', educator_id: '' });
@@ -69,13 +75,7 @@ function ClassPage({ currentSchoolId }) {
   };
 
   return (
-    <div
-      className="d-flex"
-      style={{
-        minHeight: '100vh',
-        backgroundColor: '#1B1F3B',
-      }}
-    >
+    <div className="d-flex" style={{ minHeight: '100vh', backgroundColor: '#1B1F3B' }}>
       <Sidebar />
 
       <div className="container-fluid text-white py-4">
@@ -84,7 +84,7 @@ function ClassPage({ currentSchoolId }) {
           <button
             className="btn btn-primary"
             onClick={() => setShowModal(true)}
-            disabled={currentSchoolId == null}
+            disabled={!schoolId}
           >
             Create Class
           </button>
@@ -139,7 +139,7 @@ function ClassPage({ currentSchoolId }) {
                       className="btn-close"
                       aria-label="Close"
                       onClick={() => setShowModal(false)}
-                    ></button>
+                    />
                   </div>
 
                   <div className="modal-body">
@@ -185,7 +185,7 @@ function ClassPage({ currentSchoolId }) {
                     <button
                       type="submit"
                       className="btn btn-primary"
-                      disabled={currentSchoolId == null}
+                      disabled={!schoolId}
                     >
                       Create Class
                     </button>

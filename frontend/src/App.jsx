@@ -52,6 +52,8 @@ function App() {
                 <Route path="/schools" element={<School />} />
                 <Route path="/schools/:schoolId" element={<SchoolDetail />} />
                 <Route path="/classes" element={<ClassPage />} />
+                <Route path="/classes/:schoolId" element={<ClassPage />} />
+
 
                 {/* <Route path="/student" element={<StudentDashboard />} />
                 <Route path="/exam" element={<ExamPage/>} /> */}

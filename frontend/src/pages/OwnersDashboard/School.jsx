@@ -71,7 +71,6 @@ const School = () => {
           <thead className="table-light">
             <tr>
               <th>School Name</th>
-              <th>Created By (User ID)</th>
               <th>Created At</th>
               <th style={{ width: "180px" }}>Actions</th>
             </tr>
@@ -83,26 +82,28 @@ const School = () => {
               </tr>
             )}
             {schools.map((school) => (
-              <tr key={school.id}>
-                <td>{school.name}</td>
-                <td>{school.created_by}</td>
-                <td>{new Date(school.created_at).toLocaleString()}</td>
-                <td>
-                  {/* New "View" button linking to /schools/:id */}
-                  <Link
-                    to={`/schools/${school.id}`}
-                    className="btn btn-info btn-sm me-2"
-                  >
-                    View
-                  </Link>
-                  <button
-                    className="btn btn-danger btn-sm"
-                    onClick={() => handleDelete(school.id)}
-                  >
-                    Delete
-                  </button>
-                </td>
-              </tr>
+            <tr key={school.id}>
+            <td>{school.name}</td>
+            <td>{new Date(school.created_at).toLocaleString()}</td>
+            <td>
+  <Link
+    to={`/schools/${school.id}`}
+    className="btn btn-success btn-sm me-2"
+    style={{ whiteSpace: 'nowrap' }}
+  >
+    View
+  </Link>
+  <button
+    className="btn btn-success btn-sm me-2"
+    style={{ whiteSpace: 'nowrap' }}
+    onClick={() => handleDelete(school.id)}
+  >
+    Delete
+  </button>
+</td>
+
+          </tr>
+         
             ))}
           </tbody>
         </table>

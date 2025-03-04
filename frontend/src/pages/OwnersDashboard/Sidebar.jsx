@@ -41,13 +41,13 @@ const Sidebar = () => {
 
       // If resp is OK, the user is logged out. 
       // Navigate to the login page or wherever you want
-      navigate("/login");
+      navigate("/");
     } catch (err) {
       console.error("Logout error:", err);
       // Even if there's an error, remove local token & go to login
       localStorage.removeItem("token");
       localStorage.removeItem("user_id");
-      navigate("/login");
+      navigate("/");
     }
   };
 
@@ -82,7 +82,7 @@ const Sidebar = () => {
           </li>
           {/* Classes*/}
           <li className="nav-item mb-2">
-            <Link to="/classes" className="nav-link text-white">
+            <Link to="/classes/1" className="nav-link text-white">
               <FaChalkboardTeacher className="me-2" />
               Classes
             </Link>
