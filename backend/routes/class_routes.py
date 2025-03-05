@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify, abort
 from models import db, Class
 
-classes_bp = Blueprint('classes', __name__)
+classes_bp = Blueprint('classes_bp', __name__)
 
 @classes_bp.route('/classes', methods=['GET'])
 def get_classes():
@@ -105,3 +105,23 @@ def delete_class(class_id):
     db.session.delete(cls)
     db.session.commit()
     return jsonify({'message': 'Class deleted successfully'}), 200
+
+@classes_bp.route('/classes/<int:class_id>/students', methods=['GET'])
+def get_class_students(class_id):
+    """
+    Retrieve all students enrolled in a given class (by class_id).
+    """
+    cls = Class.query.get_or_404(class_id)
+
+    # Assuming 'cls.students' is a relationship returning a list of Student objects
+    # Adjust the fields you want to return for each student
+    students_data = []
+    for student in cls.students:
+        students_data.append({
+            'id': student.id,
+            'name': student.name,
+            # Add more fields if your Student model has them
+        })
+
+    return jsonify(students_data), 200
+
