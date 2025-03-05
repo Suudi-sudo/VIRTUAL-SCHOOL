@@ -394,8 +394,9 @@ def add_student_to_school(school_id):
     if not school:
         return jsonify({"msg": "School not found."}), 404
 
-    if school.created_by != current_user_id:
-        return jsonify({"msg": "Only the school owner can add students."}), 403
+    # Role-based authorization
+    if current_user.role.lower() not in ['admin', 'school_admin']:
+        return jsonify({"msg": "Only admins or school admins can add students."}), 403
 
     data = request.get_json() or {}
     student_id = data.get('student_id')
@@ -428,8 +429,9 @@ def add_educator_to_school(school_id):
     if not school:
         return jsonify({"msg": "School not found."}), 404
 
-    if school.created_by != current_user_id:
-        return jsonify({"msg": "Only the school owner can add educators."}), 403
+    # Role-based authorization
+    if current_user.role.lower() not in ['admin', 'school_admin']:
+        return jsonify({"msg": "Only admins or school admins can add educators."}), 403
 
     data = request.get_json() or {}
     teacher_id = data.get('teacher_id')
