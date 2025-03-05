@@ -12,7 +12,20 @@ function ClassPage() {
   const [error, setError] = useState(null);
   const [showModal, setShowModal] = useState(false);
 
+  // ---- NEW STATES for adding a student ----
+  const [showAddStudentModal, setShowAddStudentModal] = useState(false);
+  const [selectedClassId, setSelectedClassId] = useState(null);
+  const [studentId, setStudentId] = useState('');
+
+  // ---- NEW STATES for viewing students ----
+  const [showViewStudentsModal, setShowViewStudentsModal] = useState(false);
+  const [classRoster, setClassRoster] = useState([]); // holds array of students
+  const [selectedClassName, setSelectedClassName] = useState('');
+
   const BASE_URL = 'http://localhost:5000';
+
+  // Retrieve token from localStorage
+  const token = localStorage.getItem('token');
 
   useEffect(() => {
     // If no schoolId in the URL, show error and skip fetching
@@ -21,8 +34,12 @@ function ClassPage() {
       return;
     }
 
-    // Pass school_id as a query param so the Flask code does the filtering
-    fetch(`${BASE_URL}/classes?school_id=${schoolId}`)
+    // Fetch classes filtered by school_id
+    fetch(`${BASE_URL}/classes?school_id=${schoolId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
       .then((response) => {
         if (!response.ok) {
           throw new Error('Failed to fetch classes');
@@ -30,10 +47,10 @@ function ClassPage() {
         return response.json();
       })
       .then((data) => {
-        setClasses(data); // The server already filters by school_id
+        setClasses(data);
       })
       .catch((err) => setError(err.message));
-  }, [schoolId]);
+  }, [schoolId, token]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -51,12 +68,14 @@ function ClassPage() {
 
     fetch(`${BASE_URL}/classes`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
       body: JSON.stringify(classData),
     })
       .then((response) => {
         if (!response.ok) {
-          // If server returns an error JSON, parse it
           return response.json().then((err) => {
             throw new Error(err.error || 'Failed to create class');
           });
@@ -70,6 +89,70 @@ function ClassPage() {
         }
         setNewClass({ name: '', educator_id: '' });
         setShowModal(false);
+      })
+      .catch((err) => setError(err.message));
+  };
+
+  // --- HANDLERS FOR ADDING A STUDENT TO A CLASS ---
+  const handleAddStudentClick = (classId) => {
+    setSelectedClassId(classId);
+    setStudentId('');
+    setShowAddStudentModal(true);
+  };
+
+  const handleAddStudentSubmit = (e) => {
+    e.preventDefault();
+    if (!selectedClassId || !studentId) {
+      setError('Please provide both class and student ID.');
+      return;
+    }
+
+    fetch(`${BASE_URL}/classes/${selectedClassId}/add-student`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ student_id: studentId }),
+    })
+      .then((response) => {
+        if (!response.ok) {
+          return response.json().then((err) => {
+            throw new Error(err.msg || 'Failed to add student to class');
+          });
+        }
+        return response.json();
+      })
+      .then((data) => {
+        alert(data.msg || 'Student added successfully.');
+        setShowAddStudentModal(false);
+      })
+      .catch((err) => setError(err.message));
+  };
+
+  // --- HANDLER FOR VIEWING STUDENTS IN A CLASS ---
+  const handleViewStudentsClick = (cls) => {
+    // `cls` is the entire class object from the map
+    setSelectedClassId(cls.id);
+    setSelectedClassName(cls.name);
+
+    // Fetch the students in that class
+    fetch(`${BASE_URL}/classes/${cls.id}/students`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error('Failed to fetch class roster');
+        }
+        return response.json();
+      })
+      .then((data) => {
+        // Expecting `data` to be an array of students
+        setClassRoster(data);
+        setShowViewStudentsModal(true);
       })
       .catch((err) => setError(err.message));
   };
@@ -99,6 +182,7 @@ function ClassPage() {
               <th>ID</th>
               <th>Class Name</th>
               <th>Educator ID</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -108,11 +192,19 @@ function ClassPage() {
                   <td>{cls.id}</td>
                   <td>{cls.name}</td>
                   <td>{cls.educator_id}</td>
+                  <td>
+                    <button
+                      className="btn btn-info me-2"
+                      onClick={() => handleAddStudentClick(cls.id)}
+                    >
+                      Add Student
+                    </button>
+                  </td>
                 </tr>
               ))
             ) : (
               <tr>
-                <td colSpan="3" className="text-center">
+                <td colSpan="4" className="text-center">
                   No classes available
                 </td>
               </tr>
@@ -120,6 +212,7 @@ function ClassPage() {
           </tbody>
         </table>
 
+        {/* --- CREATE CLASS MODAL --- */}
         {showModal && (
           <>
             <div className="modal-backdrop fade show" />
@@ -188,6 +281,64 @@ function ClassPage() {
                       disabled={!schoolId}
                     >
                       Create Class
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </>
+        )}
+
+        {/* --- ADD STUDENT MODAL --- */}
+        {showAddStudentModal && (
+          <>
+            <div className="modal-backdrop fade show" />
+            <div
+              className="modal fade show"
+              tabIndex="-1"
+              role="dialog"
+              aria-modal="true"
+              style={{ display: 'block' }}
+            >
+              <div className="modal-dialog modal-dialog-centered" role="document">
+                <form className="modal-content text-dark" onSubmit={handleAddStudentSubmit}>
+                  <div className="modal-header">
+                    <h5 className="modal-title">Add Student to Class</h5>
+                    <button
+                      type="button"
+                      className="btn-close"
+                      aria-label="Close"
+                      onClick={() => setShowAddStudentModal(false)}
+                    />
+                  </div>
+
+                  <div className="modal-body">
+                    <div className="mb-3">
+                      <label htmlFor="student_id" className="form-label">
+                        Student ID
+                      </label>
+                      <input
+                        type="number"
+                        className="form-control"
+                        id="student_id"
+                        name="student_id"
+                        value={studentId}
+                        onChange={(e) => setStudentId(e.target.value)}
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className="modal-footer">
+                    <button
+                      type="button"
+                      className="btn btn-secondary"
+                      onClick={() => setShowAddStudentModal(false)}
+                    >
+                      Cancel
+                    </button>
+                    <button type="submit" className="btn btn-primary">
+                      Add Student
                     </button>
                   </div>
                 </form>

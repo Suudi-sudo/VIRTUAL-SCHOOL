@@ -66,7 +66,7 @@ function StudentsDashboard() {
           </li>
           <li className="mb-3">
             <Link
-              to="/classes"
+              to=""
               className="text-white text-decoration-none d-flex align-items-center"
             >
               <FaChalkboardTeacher className="me-2" />

@@ -117,3 +117,4 @@ def create_class_in_school(school_id):
     db.session.commit()
 
     return jsonify({"msg": "Class created", "id": new_class.id}), 201
+
