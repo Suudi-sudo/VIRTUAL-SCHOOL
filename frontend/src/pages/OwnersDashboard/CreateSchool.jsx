@@ -10,22 +10,14 @@ const CreateSchool = () => {
   const [phone, setPhone] = useState("");
   const [schoolEmail, setSchoolEmail] = useState("");
   const [description, setDescription] = useState("");
-
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
-  const userId = localStorage.getItem("user.email"); // set after login
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
-
-    if (!userId) {
-      setError("No user_id found. Please log in first.");
-      return;
-    }
-
     setLoading(true);
 
     try {
@@ -42,14 +34,14 @@ const CreateSchool = () => {
           phone,
           email: schoolEmail,
           description,
-          created_by: userId,
         }),
       });
+
       if (!resp.ok) {
         const errData = await resp.json();
         throw new Error(errData.msg || "Failed to create school");
       }
-      // On success, go back to schools page
+
       navigate("/schools");
     } catch (err) {
       setError(err.message);
@@ -61,21 +53,17 @@ const CreateSchool = () => {
   return (
     <div style={{ display: "flex", minHeight: "100vh" }}>
       <Sidebar />
-
-      {/* Dark background container */}
       <div className="flex-grow-1 p-4" style={{ backgroundColor: "#343a40", color: "#fff" }}>
         <h2 className="mb-4">Create New School</h2>
 
         {error && <p className="text-danger">{error}</p>}
 
-        {/* Bootstrap card for the form */}
         <div className="card border-0 shadow bg-dark text-white" style={{ maxWidth: "600px" }}>
           <div className="card-header bg-primary text-white">
             <h5 className="mb-0">School Details</h5>
           </div>
           <div className="card-body">
             <form onSubmit={handleSubmit}>
-              {/* School Name */}
               <div className="mb-3">
                 <label className="form-label">School Name</label>
                 <input
@@ -88,7 +76,6 @@ const CreateSchool = () => {
                 />
               </div>
 
-              {/* Address */}
               <div className="mb-3">
                 <label className="form-label">Address</label>
                 <input
@@ -100,7 +87,6 @@ const CreateSchool = () => {
                 />
               </div>
 
-              {/* Phone */}
               <div className="mb-3">
                 <label className="form-label">Phone</label>
                 <input
@@ -112,7 +98,6 @@ const CreateSchool = () => {
                 />
               </div>
 
-              {/* School Email */}
               <div className="mb-3">
                 <label className="form-label">School Email</label>
                 <input
@@ -124,7 +109,6 @@ const CreateSchool = () => {
                 />
               </div>
 
-              {/* Description */}
               <div className="mb-3">
                 <label className="form-label">Description</label>
                 <textarea
@@ -136,7 +120,6 @@ const CreateSchool = () => {
                 />
               </div>
 
-              {/* Submit Button */}
               <button type="submit" className="btn btn-success w-100" disabled={loading}>
                 {loading ? "Creating..." : "Create School"}
               </button>

@@ -1,13 +1,15 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   FaClipboardList,
   FaBook,
   FaUsers,
   FaComments,
   FaPen,
+  FaSignOutAlt,
 } from "react-icons/fa";
-import LogoutButton from "../../components/Logout"; // Import the new logout component
+
+const BASE_URL = "http://localhost:5000";
 
 const dashboardCards = [
   { path: "/educator/attendance", icon: <FaClipboardList className="text-warning" />, label: "Take Attendance", borderColor: "#ffc107" },
@@ -18,19 +20,47 @@ const dashboardCards = [
 ];
 
 const EducatorDashboard = () => {
+  const navigate = useNavigate();
+
+  // Logout handler
+  const handleLogout = async (e) => {
+    e.preventDefault();
+
+    try {
+      const token = localStorage.getItem("token");
+
+      // Remove local storage token & navigate to home
+      localStorage.removeItem("token");
+      localStorage.removeItem("user_id");
+
+      if (!token) {
+        navigate("/"); // Redirect to Home Page
+        return;
+      }
+
+      await fetch(`${BASE_URL}/logout`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      navigate("/"); // Redirect to Home Page after logout
+    } catch (err) {
+      console.error("Logout error:", err);
+      navigate("/"); // Even if error occurs, go to home
+    }
+  };
+
   return (
     <div
       className="position-relative min-vh-100"
       style={{
-        background:
-          'url("https://via.placeholder.com/1500") center center / cover no-repeat',
+        background: 'url("https://via.placeholder.com/1500") center center / cover no-repeat',
       }}
     >
       {/* -- Overlay for better readability -- */}
-      <div
-        className="position-absolute top-0 start-0 w-100 h-100 bg-dark"
-        style={{ opacity: 0.7, zIndex: 0 }}
-      ></div>
+      <div className="position-absolute top-0 start-0 w-100 h-100 bg-dark" style={{ opacity: 0.7, zIndex: 0 }}></div>
 
       {/* -- Sidebar -- */}
       <aside
@@ -50,17 +80,17 @@ const EducatorDashboard = () => {
           </ul>
         </div>
 
-        {/* -- Logout Button Component -- */}
-        <div className="mt-auto">
-          <LogoutButton />
+        {/* -- Logout at the bottom -- */}
+        <div>
+          <a href="#logout" onClick={handleLogout} className="nav-link text-danger d-flex align-items-center">
+            <FaSignOutAlt className="me-2" />
+            Logout
+          </a>
         </div>
       </aside>
 
       {/* -- Main Content -- */}
-      <main
-        className="text-white p-4 position-relative"
-        style={{ marginLeft: "240px", zIndex: 1 }}
-      >
+      <main className="text-white p-4 position-relative" style={{ marginLeft: "240px", zIndex: 1 }}>
         {/* -- Profile Picture on the Right Side -- */}
         <div className="position-absolute top-0 end-0 p-3">
           <img
@@ -74,9 +104,7 @@ const EducatorDashboard = () => {
         {/* -- Welcome Banner -- */}
         <div className="bg-dark shadow p-5 mb-5 text-center">
           <h1 className="display-4 fw-bold mb-2">Welcome, Educator</h1>
-          <p className="text-muted">
-            Manage your class, attendance, resources, and more!
-          </p>
+          <p className="text-muted">Manage your class, attendance, resources, and more!</p>
         </div>
 
         {/* -- Quick Action Cards -- */}
