@@ -1,13 +1,20 @@
 from flask import request, jsonify, Blueprint
 from datetime import datetime
 import json
-from models import db, Quiz, QuizQuestion, QuizSubmission
+from models import db, Quiz, QuizQuestion, QuizSubmission, User
+from flask_jwt_extended import jwt_required, get_jwt_identity
 
 quiz_bp = Blueprint("quiz_bp", __name__)
 
 @quiz_bp.route("/quizzes", methods=["POST"])
+@jwt_required()  # Ensure the user is authenticated
 def create_quiz():
     """Create a new quiz."""
+    user_id = get_jwt_identity()
+    user = User.query.get(user_id)
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+
     data = request.get_json()
     quiz_title = data.get("quiz_title")
     class_id = data.get("class_id")
@@ -17,8 +24,8 @@ def create_quiz():
         return jsonify({"error": "Missing required fields"}), 400
 
     try:
-        # Create the quiz
-        quiz = Quiz(quiz_title=quiz_title, class_id=class_id)
+        # Create the quiz with the user's school_id
+        quiz = Quiz(quiz_title=quiz_title, class_id=class_id, school_id=user.school_id)
         db.session.add(quiz)
         db.session.commit()
 
@@ -42,10 +49,16 @@ def create_quiz():
         return jsonify({"error": str(e)}), 500
 
 @quiz_bp.route("/quizzes", methods=["GET"])
+@jwt_required()  # Ensure the user is authenticated
 def get_all_quizzes():
-    """Get all quizzes."""
+    """Get all quizzes for the logged-in user's school."""
+    user_id = get_jwt_identity()
+    user = User.query.get(user_id)
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+
     try:
-        quizzes = Quiz.query.all()
+        quizzes = Quiz.query.filter_by(school_id=user.school_id).all()  # Filter by school_id
         quiz_list = []
         for quiz in quizzes:
             quiz_data = {
@@ -74,11 +87,17 @@ def get_all_quizzes():
         return jsonify({"error": str(e)}), 500
 
 @quiz_bp.route("/quizzes/<int:quiz_id>", methods=["GET"])
+@jwt_required()  # Ensure the user is authenticated
 def get_quiz(quiz_id):
     """Get a specific quiz with its questions."""
-    quiz = Quiz.query.get(quiz_id)
+    user_id = get_jwt_identity()
+    user = User.query.get(user_id)
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+
+    quiz = Quiz.query.filter_by(id=quiz_id, school_id=user.school_id).first()  # Ensure quiz belongs to the user's school
     if not quiz:
-        return jsonify({"error": "Quiz not found"}), 404
+        return jsonify({"error": "Quiz not found or unauthorized"}), 404
 
     questions = []
     for question in quiz.questions:
@@ -99,9 +118,19 @@ def get_quiz(quiz_id):
     return jsonify(quiz_data), 200
 
 @quiz_bp.route("/quizzes/<int:quiz_id>/submissions", methods=["GET"])
+@jwt_required()  # Ensure the user is authenticated
 def get_quiz_submissions(quiz_id):
-    """Get all submissions for a specific quiz."""
+    """Get all submissions for a specific quiz, filtered by school."""
+    user_id = get_jwt_identity()
+    user = User.query.get(user_id)
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+
     try:
+        quiz = Quiz.query.filter_by(id=quiz_id, school_id=user.school_id).first()  # Ensure quiz belongs to the user's school
+        if not quiz:
+            return jsonify({"error": "Quiz not found or unauthorized"}), 404
+
         submissions = QuizSubmission.query.filter_by(quiz_id=quiz_id).all()
         submission_list = []
         for submission in submissions:
@@ -117,47 +146,26 @@ def get_quiz_submissions(quiz_id):
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-@quiz_bp.route("/quizzes/submitted", methods=["GET"])
-def get_all_submitted_quizzes():
-    """Get all submitted quizzes for educators."""
-    try:
-        submissions = QuizSubmission.query.all()
-        submission_list = []
-        for submission in submissions:
-            quiz = Quiz.query.get(submission.quiz_id)
-            submission_list.append({
-                "id": submission.id,
-                "quiz_id": submission.quiz_id,
-                "quiz_title": quiz.quiz_title,
-                "student_id": submission.student_id,
-                "score": submission.score,
-                "submitted_at": submission.submitted_at.isoformat(),
-                "answers": json.loads(submission.answers_json),
-            })
-        return jsonify({"submissions": submission_list}), 200
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-
-
 @quiz_bp.route("/quizzes/<int:quiz_id>/submit", methods=["POST"])
+@jwt_required()  # Ensure the user is authenticated
 def submit_quiz(quiz_id):
     """Submit a quiz and calculate the score."""
+    user_id = get_jwt_identity()
+    user = User.query.get(user_id)
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+
     try:
         data = request.get_json()
-        print("Received data:", data)  # Log the incoming data
-
         student_id = data.get("student_id")
         answers = data.get("answers")  # This should be a dictionary of {question_id: selected_option}
 
         if not student_id or not answers:
             return jsonify({"error": "Missing student_id or answers"}), 400
 
-        print("Answers received:", answers)  # Log the answers dictionary
-
-        quiz = Quiz.query.get(quiz_id)
+        quiz = Quiz.query.filter_by(id=quiz_id, school_id=user.school_id).first()  # Ensure quiz belongs to the user's school
         if not quiz:
-            return jsonify({"error": "Quiz not found"}), 404
+            return jsonify({"error": "Quiz not found or unauthorized"}), 404
 
         questions = QuizQuestion.query.filter_by(quiz_id=quiz_id).all()
         
@@ -184,5 +192,4 @@ def submit_quiz(quiz_id):
         return jsonify({"message": "Quiz submitted successfully", "score": score, "total": total_questions}), 201
     except Exception as e:
         db.session.rollback()
-        print(f"Error in submit_quiz: {str(e)}")  # Log the error
         return jsonify({"error": str(e)}), 500

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback } from "react";
 
 function StudentActions() {
@@ -6,6 +5,7 @@ function StudentActions() {
   const [quizzes, setQuizzes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
   const [selectedQuiz, setSelectedQuiz] = useState(null);
   const [studentAnswers, setStudentAnswers] = useState([]);
   const [studentId, setStudentId] = useState(1); // Hardcoded student ID for testing
@@ -15,23 +15,45 @@ function StudentActions() {
   const fetchExamsAndQuizzes = useCallback(async () => {
     try {
       setLoading(true);
+
+      // 1) Get the token from localStorage
+      const token = localStorage.getItem("token");
+      if (!token) {
+        // If there's no token, you can't call protected endpoints
+        setError("No token found. Please login first.");
+        return;
+      }
+
+      // 2) Make the requests with the Authorization header
       const [examsResponse, quizzesResponse] = await Promise.all([
-        fetch(`http://127.0.0.1:5000/exams`),
-        fetch(`http://127.0.0.1:5000/quizzes`),
+        fetch("http://127.0.0.1:5000/exams", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }),
+        fetch("http://127.0.0.1:5000/quizzes", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }),
       ]);
 
       if (!examsResponse.ok || !quizzesResponse.ok) {
         throw new Error("Failed to fetch data");
       }
 
+      // 3) Parse JSON
       const examsData = await examsResponse.json();
-      const quizzesData = await quizzesResponse.json();
-
+      // Note: Your /exams route returns { exams, total, pages, current_page }
+      // so we'll assume the array is at examsData.exams
       setExams(examsData.exams);
+
+      const quizzesData = await quizzesResponse.json();
+      // /quizzes returns a list ( array ) of quizzes directly
       setQuizzes(quizzesData);
     } catch (err) {
-      setError("Failed to load data");
       console.error(err);
+      setError("Failed to load data: " + err.message);
     } finally {
       setLoading(false);
     }
@@ -40,15 +62,26 @@ function StudentActions() {
   // Fetch quiz submissions for the student
   const fetchQuizSubmissions = useCallback(async (quizId) => {
     try {
-      const response = await fetch(`http://127.0.0.1:5000/quizzes/${quizId}/submissions`);
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setError("No token found. Please login first.");
+        return;
+      }
+
+      // Provide the Authorization header here, too
+      const response = await fetch(`http://127.0.0.1:5000/quizzes/${quizId}/submissions`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
       if (!response.ok) {
         throw new Error("Failed to fetch quiz submissions");
       }
       const data = await response.json();
       setQuizSubmissions(data.submissions);
     } catch (err) {
-      setError("Failed to load quiz submissions");
       console.error(err);
+      setError("Failed to load quiz submissions: " + err.message);
     }
   }, []);
 
@@ -57,7 +90,10 @@ function StudentActions() {
   }, [fetchExamsAndQuizzes]);
 
   // Handle taking a quiz
-  const handleTakeQuiz = (quiz) => {
+  const handleTakeQuiz = async (quiz) => {
+    // First, fetch the existing submissions for this quiz
+    await fetchQuizSubmissions(quiz.id);
+
     // Check if the student has already submitted this quiz
     const hasSubmitted = quizSubmissions.some(
       (submission) => submission.quiz_id === quiz.id && submission.student_id === studentId
@@ -85,39 +121,49 @@ function StudentActions() {
 
   // Handle quiz submission
   const handleSubmitQuiz = async () => {
+    if (!selectedQuiz) return;
     try {
-      // Check if the student has already submitted this quiz
+      // Check if the student has already submitted
       const hasSubmitted = quizSubmissions.some(
-        (submission) => submission.quiz_id === selectedQuiz.id && submission.student_id === studentId
+        (submission) =>
+          submission.quiz_id === selectedQuiz.id && submission.student_id === studentId
       );
-
       if (hasSubmitted) {
         throw new Error("You have already submitted this quiz.");
       }
 
-      // Transform studentAnswers into the correct format
+      // Transform studentAnswers into { question_id: optionIndex }
       const formattedAnswers = selectedQuiz.questions.reduce((acc, question, index) => {
-        acc[question.id] = studentAnswers[index]; // Key: question_id, Value: selected_option
+        acc[question.id] = studentAnswers[index]; // Key: question.id, Value: selected option index
         return acc;
       }, {});
 
       const payload = {
         student_id: studentId,
-        answers: formattedAnswers, // Use the transformed answers
+        answers: formattedAnswers,
       };
 
-      console.log("Submission details:", payload); // Debugging
+      // Include the Authorization header on POST as well
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setError("No token found. Please login first.");
+        return;
+      }
 
-      const response = await fetch(`http://127.0.0.1:5000/quizzes/${selectedQuiz.id}/submit`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-      });
+      const response = await fetch(
+        `http://127.0.0.1:5000/quizzes/${selectedQuiz.id}/submit`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(payload),
+        }
+      );
 
       if (!response.ok) {
-        const errorData = await response.json(); // Parse the error response from the backend
+        const errorData = await response.json();
         throw new Error(errorData.error || "Failed to submit quiz");
       }
 
@@ -125,15 +171,15 @@ function StudentActions() {
       alert(`Quiz submitted! Your score: ${result.score}/${selectedQuiz.questions.length}`);
       setSelectedQuiz(null);
 
-      // Refresh quiz submissions
+      // Refresh quiz submissions for this quiz
       fetchQuizSubmissions(selectedQuiz.id);
 
       // Remove event listeners
       window.removeEventListener("beforeunload", handleBeforeUnload);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     } catch (err) {
-      setError(err.message || "Failed to submit quiz");
       console.error(err);
+      setError(err.message || "Failed to submit quiz");
     }
   };
 
@@ -166,26 +212,22 @@ function StudentActions() {
       setIsOpened(true); // Once clicked, change color and text permanently
     };
 
-    return (
-      <>
-        {externalUrl ? (
-          <a
-            href={externalUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={handleClick}
-            style={{
-              color: isOpened ? "green" : "red", // Red before click, green after
-              fontWeight: "bold",
-              textDecoration: "none",
-            }}
-          >
-            {isOpened ? "Opened" : "Open Exam"} {/* Change text based on state */}
-          </a>
-        ) : (
-          "No link provided"
-        )}
-      </>
+    return externalUrl ? (
+      <a
+        href={externalUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        onClick={handleClick}
+        style={{
+          color: isOpened ? "green" : "red", // Red before click, green after
+          fontWeight: "bold",
+          textDecoration: "none",
+        }}
+      >
+        {isOpened ? "Opened" : "Open Exam"}
+      </a>
+    ) : (
+      "No link provided"
     );
   };
 
@@ -228,6 +270,10 @@ function StudentActions() {
                 <td>{exam.duration_minutes}</td>
                 <td>{exam.status}</td>
                 <td>
+                  {/* 
+                    If your backend actually provides exam.external_url,
+                    show <ExamLink>, otherwise you can omit or adapt this 
+                  */}
                   <ExamLink externalUrl={exam.external_url} />
                 </td>
               </tr>
@@ -237,49 +283,59 @@ function StudentActions() {
       </section>
 
       {/* Quizzes Section */}
-      <section className="mb-5">
-        <h2>Quizzes</h2>
+      <section className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
+        <h2 className="text-white">EXAM</h2>
         <ul className="list-group">
           {quizzes.map((quiz) => (
-            <li key={quiz.id} className="list-group-item d-flex justify-content-between align-items-center">
+            <li
+              key={quiz.id}
+              className="list-group-item d-flex justify-content-between align-items-center"
+            >
               {quiz.quiz_title}
-              <button className="btn btn-primary" onClick={() => handleTakeQuiz(quiz)}>
-                Take Quiz
+              <button
+                className="btn btn-primary"
+                onClick={() => handleTakeQuiz(quiz)}
+              >
+                Take exam
               </button>
             </li>
           ))}
         </ul>
       </section>
 
-      {/* Quiz Taking Section */}
+      {/* Quiz Taking Section (Modal) */}
       {selectedQuiz && (
-        <div className="card p-4 mb-4">
-          <h3>Taking Quiz: {selectedQuiz.quiz_title}</h3>
-          {selectedQuiz.questions.map((question, questionIndex) => (
-            <div key={questionIndex} className="mb-3">
-              <p>{question.question}</p>
-              {question.options.map((option, optionIndex) => (
-                <div key={optionIndex} className="form-check">
-                  <input
-                    type="radio"
-                    className="form-check-input"
-                    name={`question-${questionIndex}`}
-                    value={optionIndex}
-                    onChange={(e) => handleAnswerChange(questionIndex, e.target.value)}
-                  />
-                  <label className="form-check-label">{option}</label>
-                </div>
-              ))}
-            </div>
-          ))}
-          <button className="btn btn-success" onClick={handleSubmitQuiz}>
-            Submit Quiz
-          </button>
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
+            <h3 className="text-white">Taking Quiz: {selectedQuiz.quiz_title}</h3>
+            {selectedQuiz.questions.map((question, qIndex) => (
+              <div key={question.id} className="mb-3">
+                <p>{question.question}</p>
+                {question.options.map((option, optIndex) => (
+                  <div key={optIndex} className="form-check text-white">
+                    <input
+                      type="radio"
+                      className="form-check-input"
+                      name={`question-${qIndex}`}
+                      value={optIndex}
+                      onChange={(e) =>
+                        handleAnswerChange(qIndex, e.target.value)
+                      }
+                    />
+                    <label className="form-check-label">{option}</label>
+                  </div>
+                ))}
+              </div>
+            ))}
+            <button className="btn btn-success" onClick={handleSubmitQuiz}>
+              Submit Quiz
+            </button>
+          </div>
         </div>
       )}
 
       {/* Quiz Submissions Section */}
-      <section className="mb-5">
+      <section className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
         <h2>Your Quiz Submissions</h2>
         <table className="table table-striped table-hover">
           <thead>
@@ -305,4 +361,3 @@ function StudentActions() {
 }
 
 export default StudentActions;
-
