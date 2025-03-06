@@ -21,7 +21,7 @@ export const AuthProvider = ({ children }) => {
       setUser(JSON.parse(storedUser));
     } else {
       try {
-        const res = await fetch("http://127.0.0.1:5000/current-user");
+        const res = await fetch("https://virtual-school-2.onrender.com/current-user");
         const data = await res.json();
         if (res.ok) {
           setUser(data.user);
@@ -38,7 +38,7 @@ export const AuthProvider = ({ children }) => {
   const googleLogin = async (email) => {
     toast.loading("Logging you in...");
     try {
-      const response = await fetch("http://127.0.0.1:5000/google_login", {
+      const response = await fetch("https://virtual-school-2.onrender.com/google_login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
@@ -50,7 +50,7 @@ export const AuthProvider = ({ children }) => {
         toast.dismiss();
         sessionStorage.setItem("token", data.access_token);
 
-        const userResponse = await fetch("http://127.0.0.1:5000/current_user", {
+        const userResponse = await fetch("https://virtual-school-2.onrender.com/current_user", {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
@@ -84,7 +84,7 @@ export const AuthProvider = ({ children }) => {
 
  // Login function
  const login = async (email, password) => {
-  const res = await fetch("http://127.0.0.1:5000/login", {
+  const res = await fetch("https://virtual-school-2.onrender.com/login", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email, password }),
@@ -109,7 +109,7 @@ export const AuthProvider = ({ children }) => {
 };
   // Logout function
   const logout = async () => {
-    await fetch("http://127.0.0.1:5000/logout", { method: "POST" });
+    await fetch("https://virtual-school-2.onrender.com/logout", { method: "POST" });
     setUser(null);
     localStorage.removeItem("user");
     sessionStorage.removeItem("token"); // Clear session token
@@ -117,7 +117,7 @@ export const AuthProvider = ({ children }) => {
 
   // Update profile
   const updateProfile = async (updates) => {
-    const res = await fetch("http://127.0.0.1:5000/update-profile", {
+    const res = await fetch("https://virtual-school-2.onrender.com/update-profile", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(updates),

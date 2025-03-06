@@ -4,7 +4,7 @@ import { MdEdit, MdDelete } from 'react-icons/md';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 // Adjust to match your Flask server's address
-const BASE_URL = 'http://localhost:5000';
+const BASE_URL = 'https://virtual-school-2.onrender.com';
 
 function Chat({ classId = 1 }) {
   const [chats, setChats] = useState([]);

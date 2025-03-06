@@ -29,7 +29,7 @@ const Login = () => {
     setMessage("");
 
     try {
-      const response = await fetch("http://127.0.0.1:5000/login", {
+      const response = await fetch("https://virtual-school-2.onrender.com/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
@@ -69,7 +69,7 @@ const Login = () => {
       console.log("Google user", user_details);
 
       // Send the Google user details to your backend
-      const response = await fetch("http://127.0.0.1:5000/google_login", {
+      const response = await fetch("https://virtual-school-2.onrender.com/google_login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: user_details.email }),

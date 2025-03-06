@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Card, Button, Form, Table, Spinner, Alert } from "react-bootstrap";
 import axios from "axios";
 
-const API_URL = "http://localhost:5000/resources"; // Make sure this is correct!
+const API_URL = "https://virtual-school-2.onrender.com/resources"; // Make sure this is correct!
 
 const Permissions = () => {
   const [resources, setResources] = useState([]);

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 
-const BASE_URL = "http://127.0.0.1:5000"; // Backend URL
+const BASE_URL = "https://virtual-school-2.onrender.com"; // Backend URL
 
 function ExamManagementPage() {
   const [exams, setExams] = useState({

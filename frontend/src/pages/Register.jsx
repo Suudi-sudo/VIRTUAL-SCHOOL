@@ -29,7 +29,7 @@ const Register = () => {
     setMessage(""); // Reset message
 
     try {
-      const response = await fetch("http://127.0.0.1:5000/register", {
+      const response = await fetch("https://virtual-school-2.onrender.com/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
@@ -56,7 +56,7 @@ const Register = () => {
 
   // Handle Google login
   const handleGoogleLogin = () => {
-    window.location.href = "http://127.0.0.1:5000/authorize_google";
+    window.location.href = "https://virtual-school-2.onrender.com/authorize_google";
   };
 
   return (
