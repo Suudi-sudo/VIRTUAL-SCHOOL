@@ -23,6 +23,7 @@ google-auth-httplib2 = "*"
 google-api-python-client = "*"
 pytest = "*"
 flask-testing = "*"
+gunicorn = "*"
 
 [dev-packages]
 
