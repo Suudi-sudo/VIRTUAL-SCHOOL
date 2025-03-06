@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 
-const BASE_URL = "http://127.0.0.1:5000"; // Define the base URL for your backend
+const BASE_URL = "http://127.0.0.1:5000";
 
 function Attendance() {
   const [attendanceData, setAttendanceData] = useState({
@@ -19,7 +19,6 @@ function Attendance() {
     class_id: "",
     student_id: "",
     status: "present",
-    signed_by: "",
   };
 
   const [formData, setFormData] = useState(defaultFormData);
@@ -27,9 +26,13 @@ function Attendance() {
   const fetchAttendance = useCallback(async (page) => {
     try {
       setLoading(true);
+      const token = localStorage.getItem("token"); // Get the JWT token from local storage
       const response = await fetch(`${BASE_URL}/attendance?page=${page}`, {
         method: "GET",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
       });
 
       if (!response.ok) {
@@ -53,10 +56,14 @@ function Attendance() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      const token = localStorage.getItem("token"); // Get the JWT token from local storage
       const response = await fetch(`${BASE_URL}/attendance`, {
         method: "POST",
         body: JSON.stringify(formData),
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
       });
 
       if (!response.ok) {
@@ -74,9 +81,13 @@ function Attendance() {
 
   const handleDelete = async (id) => {
     try {
+      const token = localStorage.getItem("token"); // Get the JWT token from local storage
       const response = await fetch(`${BASE_URL}/attendance/${id}`, {
         method: "DELETE",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
       });
 
       if (!response.ok) {
@@ -93,10 +104,14 @@ function Attendance() {
 
   const handleUpdate = async (id, status) => {
     try {
-      const response = await fetch(`${BASE_URL}/api/attendance/${id}`, {
+      const token = localStorage.getItem("token"); // Get the JWT token from local storage
+      const response = await fetch(`${BASE_URL}/attendance/${id}`, {
         method: "PUT",
         body: JSON.stringify({ status }),
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
       });
 
       if (!response.ok) {
@@ -119,15 +134,15 @@ function Attendance() {
       {error && <div className="alert alert-danger">{error}</div>}
       {success && <div className="alert alert-success">{success}</div>}
 
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
-        <div className="card-header text-white">
+      <div className="card">
+        <div className="card-header">
           <h2>Mark Attendance</h2>
         </div>
         <div className="card-body">
           <form onSubmit={handleSubmit}>
             <div className="row g-3">
               <div className="col-md-3">
-                <label className="form-label text-white">Class ID</label>
+                <label className="form-label">Class ID</label>
                 <input
                   type="number"
                   className="form-control"
@@ -138,7 +153,7 @@ function Attendance() {
                 />
               </div>
               <div className="col-md-3">
-                <label className="form-label text-white">Student ID</label>
+                <label className="form-label">Student ID</label>
                 <input
                   type="number"
                   className="form-control"
@@ -149,7 +164,7 @@ function Attendance() {
                 />
               </div>
               <div className="col-md-3">
-                <label className="form-label text-white">Status</label>
+                <label className="form-label">Status</label>
                 <select
                   className="form-select"
                   value={formData.status}
@@ -161,17 +176,6 @@ function Attendance() {
                   <option value="late">Late</option>
                 </select>
               </div>
-              <div className="col-md-3">
-                <label className="form-label text-white">Signed By</label>
-                <input
-                  type="text"
-                  className="form-control"
-                  placeholder="Signed By"
-                  value={formData.signed_by}
-                  onChange={(e) => setFormData({ ...formData, signed_by: e.target.value })}
-                  required
-                />
-              </div>
             </div>
             <button type="submit" className="btn btn-primary mt-3">
               Mark Attendance
@@ -179,9 +183,9 @@ function Attendance() {
           </form>
         </div>
       </div>
-      
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
-        <div className="card-header text-white">
+
+      <div className="card mt-4">
+        <div className="card-header">
           <h2>Attendance Records</h2>
         </div>
         <div className="card-body">

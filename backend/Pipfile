@@ -6,7 +6,6 @@ name = "pypi"
 [packages]
 alembic = "*"
 psycopg2-binary = "*"
-pytest = "*"
 flask-migrate = "*"
 flask-sqlalchemy = "*"
 python-dotenv = "*"
@@ -22,6 +21,8 @@ google-auth = "*"
 google-auth-oauthlib = "*"
 google-auth-httplib2 = "*"
 google-api-python-client = "*"
+pytest = "*"
+flask-testing = "*"
 
 [dev-packages]
 

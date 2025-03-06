@@ -59,6 +59,7 @@ const EducatorDashboard = () => {
         background: 'url("https://via.placeholder.com/1500") center center / cover no-repeat',
       }}
     >
+    
       {/* -- Overlay for better readability -- */}
       <div className="position-absolute top-0 start-0 w-100 h-100 bg-dark" style={{ opacity: 0.7, zIndex: 0 }}></div>
 
@@ -94,7 +95,7 @@ const EducatorDashboard = () => {
         {/* -- Profile Picture on the Right Side -- */}
         <div className="position-absolute top-0 end-0 p-3">
           <img
-            src="https://via.placeholder.com/50"
+            src="/Avatar--Streamline-Radix.svg"
             alt="Profile"
             className="rounded-circle border border-light"
             style={{ width: "50px", height: "50px" }}
