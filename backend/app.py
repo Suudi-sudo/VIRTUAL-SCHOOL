@@ -31,7 +31,7 @@ def create_app():
     app.config['SECRET_KEY'] = os.getenv("SECRET_KEY", "fallback_secret_key")
 
     # Configure database
-    app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///school_management.db"
+    app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://virtualschooldb_user:FuInI7WzLBjW7Au5Rn6stpbpAHPWQcTU@dpg-cv4fmbtds78s73dtt3jg-a.oregon-postgres.render.com/virtualschooldb"
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['JWT_SECRET_KEY'] = os.getenv("JWT_SECRET_KEY", "fallback_secret_key")
     app.config["JWT_ACCESS_TOKEN_EXPIRES"] = False
