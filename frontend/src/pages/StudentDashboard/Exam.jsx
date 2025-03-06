@@ -26,12 +26,12 @@ function StudentActions() {
 
       // 2) Make the requests with the Authorization header
       const [examsResponse, quizzesResponse] = await Promise.all([
-        fetch("http://127.0.0.1:5000/exams", {
+        fetch("https://virtual-school-2.onrender.com/exams", {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         }),
-        fetch("http://127.0.0.1:5000/quizzes", {
+        fetch("https://virtual-school-2.onrender.com/quizzes", {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -69,7 +69,7 @@ function StudentActions() {
       }
 
       // Provide the Authorization header here, too
-      const response = await fetch(`http://127.0.0.1:5000/quizzes/${quizId}/submissions`, {
+      const response = await fetch(`https://virtual-school-2.onrender.com/quizzes/${quizId}/submissions`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -151,7 +151,7 @@ function StudentActions() {
       }
 
       const response = await fetch(
-        `http://127.0.0.1:5000/quizzes/${selectedQuiz.id}/submit`,
+        `https://virtual-school-2.onrender.com/quizzes/${selectedQuiz.id}/submit`,
         {
           method: "POST",
           headers: {

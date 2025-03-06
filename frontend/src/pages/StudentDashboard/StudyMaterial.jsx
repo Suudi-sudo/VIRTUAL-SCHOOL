@@ -12,7 +12,7 @@ function MainComponent() {
   useEffect(() => {
     const fetchResources = async () => {
       try {
-        const response = await fetch("http://localhost:5000/resources", {
+        const response = await fetch("https://virtual-school-2.onrender.com/resources", {
           method: "GET",
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         });
@@ -125,7 +125,7 @@ function MainComponent() {
                   </div>
                   {/* ✅ FIXED: Open file properly without React Router error */}
                   <a
-                    href={resource.file_url.startsWith("http") ? resource.file_url : `http://127.0.0.1:5000${resource.file_url}`}
+                    href={resource.file_url.startsWith("http") ? resource.file_url : `https://virtual-school-2.onrender.com${resource.file_url}`}
                     
                     rel="noopener noreferrer"
                     className="inline-flex items-center px-4 py-2 bg-black text-gray-900 rounded-lg hover:bg-gray-200 transition-colors"

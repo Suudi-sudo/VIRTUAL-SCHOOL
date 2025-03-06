@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 
-const BASE_URL = "http://127.0.0.1:5000";
+const BASE_URL = "https://virtual-school-2.onrender.com";
 
 function Attendance() {
   const [attendanceData, setAttendanceData] = useState({

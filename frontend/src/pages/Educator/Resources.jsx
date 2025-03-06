@@ -23,7 +23,7 @@ function MainComponent() {
   const fetchResources = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch("http://localhost:5000/resources", {
+      const response = await fetch("https://virtual-school-2.onrender.com/resources", {
         method: "GET",
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -59,7 +59,7 @@ function MainComponent() {
       setSuccess(null);
 
       const token = localStorage.getItem("token");
-      const response = await fetch("http://localhost:5000/resources/upload", {
+      const response = await fetch("https://virtual-school-2.onrender.com/resources/upload", {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
         body: data,
@@ -84,7 +84,7 @@ function MainComponent() {
    const handleDelete = async (id) => {
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch(`http://localhost:5000/resources/${id}`, {
+      const response = await fetch(`https://virtual-school-2.onrender.com/resources/${id}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -128,7 +128,7 @@ function MainComponent() {
       setSuccess(null);
 
       const token = localStorage.getItem("token");
-      const response = await fetch(`http://localhost:5000/resources/${id}`, {
+      const response = await fetch(`https://virtual-school-2.onrender.com/resources/${id}`, {
         method: "PUT",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -214,7 +214,7 @@ function MainComponent() {
             <p>Class ID: {resource.class_id}</p>
             <p>Permissions: {resource.permissions}</p>
             <a
-                    href={resource.file_url.startsWith("http") ? resource.file_url : `http://127.0.0.1:5000${resource.file_url}`}
+                    href={resource.file_url.startsWith("http") ? resource.file_url : `https://virtual-school-2.onrender.com${resource.file_url}`}
                     
                     rel="noopener noreferrer"
                     className="inline-flex items-center px-4 py-2 bg-black text-gray-900 rounded-lg hover:bg-gray-200 transition-colors"
