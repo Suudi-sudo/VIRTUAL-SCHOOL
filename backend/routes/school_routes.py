@@ -1,6 +1,6 @@
-from flask import Blueprint, request, jsonify, current_app, url_for
+from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required
-from models import db, School, Class
+from models import db, School, Class, User
 from datetime import datetime
 
 school_bp = Blueprint('school_bp', __name__)
@@ -13,9 +13,9 @@ def get_schools():
     schools = [{
         "id": s.id,
         "name": s.name,
-        "created_by": s.created_by,
-        "created_at": s.created_at.isoformat()
+        "created_at": s.created_at.isoformat() if s.created_at else None
     } for s in schools_paginated.items]
+
     return jsonify({
         "schools": schools,
         "total": schools_paginated.total,
@@ -27,26 +27,40 @@ def get_schools():
 @jwt_required()
 def create_school():
     data = request.get_json()
-    if not data or 'name' not in data or 'created_by' not in data:
-        return jsonify({"msg": "Name and created_by required"}), 400
+    if not data or 'name' not in data:
+        return jsonify({"msg": "Name is required"}), 400
+    
     new_school = School(
         name=data['name'],
-        created_by=data['created_by'],
         created_at=datetime.utcnow()
     )
     db.session.add(new_school)
     db.session.commit()
+
     return jsonify({"msg": "School created", "id": new_school.id}), 201
 
 @school_bp.route('/schools/<int:school_id>', methods=['GET'])
 @jwt_required()
 def get_school(school_id):
+    """
+    Return a single school's info, plus any teachers and students in that school.
+    """
     school = School.query.get_or_404(school_id)
+    
+    # Example: if 'User' has a 'role' and 'school_id' column
+    teachers = User.query.filter_by(role="educator", school_id=school_id).all()
+    students = User.query.filter_by(role="student", school_id=school_id).all()
+
     return jsonify({
         "id": school.id,
         "name": school.name,
-        "created_by": school.created_by,
-        "created_at": school.created_at.isoformat()
+        "created_at": school.created_at.isoformat() if school.created_at else None,
+        "teachers": [
+            {"id": t.id, "username": t.username, "email": t.email} for t in teachers
+        ],
+        "students": [
+            {"id": s.id, "username": s.username, "email": s.email} for s in students
+        ]
     }), 200
 
 @school_bp.route('/schools/<int:school_id>', methods=['PUT'])
@@ -69,7 +83,6 @@ def delete_school(school_id):
     db.session.commit()
     return jsonify({"msg": "School deleted"}), 200
 
-# Nested endpoint: List classes in a school
 @school_bp.route('/schools/<int:school_id>/classes', methods=['GET'])
 @jwt_required()
 def get_school_classes(school_id):
@@ -80,6 +93,7 @@ def get_school_classes(school_id):
         "name": cl.name,
         "educator_id": cl.educator_id
     } for cl in classes_paginated.items]
+
     return jsonify({
         "classes": classes,
         "total": classes_paginated.total,
@@ -93,6 +107,7 @@ def create_class_in_school(school_id):
     data = request.get_json()
     if not data or 'name' not in data or 'educator_id' not in data:
         return jsonify({"msg": "Name and educator_id required"}), 400
+
     new_class = Class(
         school_id=school_id,
         name=data['name'],
@@ -100,4 +115,6 @@ def create_class_in_school(school_id):
     )
     db.session.add(new_class)
     db.session.commit()
+
     return jsonify({"msg": "Class created", "id": new_class.id}), 201
+

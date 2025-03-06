@@ -1,8 +1,7 @@
 import React from "react";
+import { Link } from "react-router-dom";
 import Sidebar from "./Sidebar";
 
-// OPTIONAL: Install React Icons if you want these icons:
-// npm install react-icons
 import {
   FaSchool,
   FaChalkboardTeacher,
@@ -28,17 +27,22 @@ const Dashboard = () => {
 
       {/* Main Content Area (slightly lighter dark) */}
       <div className="flex-grow-1 p-3" style={{ backgroundColor: "#24294B" }}>
-        {/* Top Breadcrumb / Header row */}
+        {/* Top Header Row */}
         <div className="d-flex align-items-center justify-content-between mb-3 text-white">
           <div>
             <small>Admin &gt; Dashboard</small>
           </div>
-          <div>
+          <div className="d-flex align-items-center">
+            {/* Create School button at the far top right */}
+            <Link to="/createschool" className="btn btn-success me-3">
+              Create School
+            </Link>
             <span className="me-2">Admin User</span>
             <img
-              src="https://via.placeholder.com/30" // placeholder user avatar
+              src="/Avatar--Streamline-Radix.svg" // placeholder user avatar
               alt="Admin Avatar"
               className="rounded-circle"
+              style={{ width: "45px", height: "45px" }}
             />
           </div>
         </div>
@@ -138,40 +142,48 @@ const Dashboard = () => {
               <div className="card-body">
                 <div className="row text-center">
                   <div className="col-6 mb-3">
-                    <button
+                    {/* Link to the Create School route */}
+                    <Link
+                      to="/createschool"
                       className="btn w-100"
                       style={{ backgroundColor: "#32407B", color: "#FFF" }}
                     >
                       <FaPlusSquare className="me-1" />
                       Add New School
-                    </button>
+                    </Link>
                   </div>
                   <div className="col-6 mb-3">
-                    <button
+                    {/* Link to a Teacher creation route (example: /create-teacher) */}
+                    <Link
+                      to="/teachers"
                       className="btn w-100"
                       style={{ backgroundColor: "#1F7D56", color: "#FFF" }}
                     >
                       <FaUserPlus className="me-1" />
                       Add New Teacher
-                    </button>
+                    </Link>
                   </div>
                   <div className="col-6 mb-3">
-                    <button
+                    {/* Link to settings (example: /settings) */}
+                    <Link
+                      to="/settings"
                       className="btn w-100"
                       style={{ backgroundColor: "#5F409A", color: "#FFF" }}
                     >
                       <FaWrench className="me-1" />
                       Settings
-                    </button>
+                    </Link>
                   </div>
                   <div className="col-6 mb-3">
-                    <button
+                    {/* Link to a "Download Report" page or trigger a download */}
+                    <Link
+                      to=""
                       className="btn w-100"
                       style={{ backgroundColor: "#80572F", color: "#FFF" }}
                     >
                       <FaDownload className="me-1" />
                       Download Report
-                    </button>
+                    </Link>
                   </div>
                 </div>
               </div>
@@ -215,7 +227,7 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Recent Activity */}
+        {/* Replace Recent Activity with something else, e.g., "Upcoming Events" */}
         <div className="row">
           <div className="col-12">
             <div
@@ -229,21 +241,21 @@ const Dashboard = () => {
                   borderBottom: "1px solid #474D75",
                 }}
               >
-                Recent Activity
+                Upcoming Events
               </div>
               <div className="card-body">
                 <ul className="list-unstyled mb-0">
                   <li className="mb-2">
-                    <strong>New school added:</strong> Lincoln High School{" "}
-                    <small className="text-muted">2 hours ago</small>
+                    <strong>Parent-Teacher Conference:</strong> March 10{" "}
+                    <small className="text-muted">in 2 days</small>
                   </li>
                   <li className="mb-2">
-                    <strong>New teacher registered:</strong> Sarah Johnson{" "}
-                    <small className="text-muted">4 hours ago</small>
+                    <strong>Annual Sports Day:</strong> April 15{" "}
+                    <small className="text-muted">in 1 month</small>
                   </li>
                   <li>
-                    <strong>School details updated:</strong> Washington Elementary{" "}
-                    <small className="text-muted">6 hours ago</small>
+                    <strong>Teacher Training Workshop:</strong> May 5{" "}
+                    <small className="text-muted">in 2 months</small>
                   </li>
                 </ul>
               </div>

@@ -1,5 +1,9 @@
 import React, { useState } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
+import { jwtDecode } from "jwt-decode";
+import { GoogleLogin } from "@react-oauth/google";
+import ErrorBoundary from "../../ErrorBoundary";
+import { useNavigate } from "react-router-dom"; // Import useNavigate for redirects
 
 const Login = () => {
   const [user, setUser] = useState(null);
@@ -7,8 +11,12 @@ const Login = () => {
   const [formData, setFormData] = useState({
     email: "",
     password: "",
+    role: "student", // Default role
   });
   const [message, setMessage] = useState("");
+
+  // Hook for navigation
+  const navigate = useNavigate();
 
   // Handle input changes
   const handleChange = (e) => {
@@ -29,8 +37,23 @@ const Login = () => {
       const data = await response.json();
 
       if (response.ok) {
+        // Save token and user_id to localStorage
+        localStorage.setItem("token", data.access_token);
+        localStorage.setItem("user_id", data.user_id);
+
         setUser(data);
         setMessage("Login successful!");
+
+        // Role-based redirect
+        if (data.role === "admin") {
+          navigate("/admin");
+        } else if (data.role === "educator") {
+          navigate("/educator/dashboard");
+        } else if (data.role === "student") {
+          navigate("/student/dashboard");
+        } else {
+          navigate("/");
+        }
       } else {
         setMessage(data.msg);
       }
@@ -40,8 +63,37 @@ const Login = () => {
   };
 
   // Handle Google login
-  const handleGoogleLogin = () => {
-    window.location.href = "http://127.0.0.1:5000/authorize_google";
+  const google_login = async (token) => {
+    try {
+      const user_details = jwtDecode(token);
+      console.log("Google user", user_details);
+
+      // Send the Google user details to your backend
+      const response = await fetch("http://127.0.0.1:5000/google_login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: user_details.email }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setUser(data.user);
+        setMessage("Google login successful!");
+
+        // Save token and user_id to localStorage
+        localStorage.setItem("token", data.access_token);
+        localStorage.setItem("user_id", data.user_id);
+
+        // Redirect to admin dashboard after successful Google login
+        navigate("/admin");
+      } else {
+        setMessage(data.msg || "Failed to login with Google.");
+      }
+    } catch (error) {
+      console.error("Google login error:", error);
+      setMessage("Something went wrong. Please try again.");
+    }
   };
 
   return (
@@ -95,6 +147,12 @@ const Login = () => {
                     />
                   </div>
 
+                  {/* Role Selection Dropdown */}
+                  <div className="mb-3">
+                   
+                    
+                  </div>
+
                   <button type="submit" className="btn btn-primary btn-lg w-100 mb-3">
                     Login
                   </button>
@@ -106,18 +164,21 @@ const Login = () => {
                   <hr className="flex-grow-1" />
                 </div>
 
-                <button
-                  onClick={handleGoogleLogin}
-                  className="btn btn-light btn-lg w-100 d-flex align-items-center justify-content-center"
-                >
-                  <img
-                    src="https://www.google.com/favicon.ico"
-                    alt="Google"
-                    className="me-2"
-                    style={{ width: "20px", height: "20px" }}
-                  />
-                  Continue with Google
-                </button>
+                {/* Wrap GoogleLogin in ErrorBoundary */}
+                <ErrorBoundary>
+                  <div className="d-flex justify-content-center">
+                    <GoogleLogin
+                      onSuccess={(credentialResponse) => {
+                        console.log("Google login success:", credentialResponse);
+                        google_login(credentialResponse.credential);
+                      }}
+                      onError={() => {
+                        console.error("Google login failed");
+                        setMessage("Google login failed. Please try again.");
+                      }}
+                    />
+                  </div>
+                </ErrorBoundary>
               </div>
             </div>
           </div>
@@ -128,4 +189,3 @@ const Login = () => {
 };
 
 export default Login;
-

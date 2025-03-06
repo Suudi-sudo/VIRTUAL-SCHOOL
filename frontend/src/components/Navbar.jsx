@@ -8,7 +8,13 @@ const Navbar = () => {
   return (
     <nav className="navbar">
       <Link to="/" className="navbar-logo">
-        <img src="/logo.png" alt="Logo" className="navbar-logo-img" />
+
+       
+
+        <img src="/arcticons--virtual-android (1).png" alt="Logo" className="navbar-logo-img" />
+
+       
+
         <span className="navbar-title">VIRTUAL SCHOOL</span>
       </Link>
 
@@ -17,17 +23,18 @@ const Navbar = () => {
           <>
             {/* <li><Link to="/logout">Logout</Link></li> */}
             <li><Link to="/exam">Exam</Link></li>
-            <li><Link to="/grades">Grades</Link></li>
-            <li><Link to="/chat">Chat</Link></li>
-            <li><Link to="/studymaterial">Study Material</Link></li>
-            <li><Link to="/profile">Profile</Link></li>
+            <li><Link to="/student/grades">Grades</Link></li>
+            <li><Link to="/student/chat">Chat</Link></li>
+            <li><Link to="/student/study-material">Study Material</Link></li>
+            <li><Link to="/student/profile">Profile</Link></li>
+            <li><Link to="/student/Dashboard">Dashboard</Link></li>
           </>
         ) : (
           <>
             <li><Link to="/">Home</Link></li>
             <li><Link to="/login">Login</Link></li>
             <li><Link to="/register">Register</Link></li>
-            <li><Link to="/educator">Educator Dashboard</Link></li>
+            
           </>
         )}
       </ul>
