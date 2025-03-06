@@ -9,13 +9,13 @@ import {
   FaSignOutAlt,
 } from "react-icons/fa";
 
-const BASE_URL = "http://localhost:5000";
+const BASE_URL = "https://virtual-school-2.onrender.com";
 
 const dashboardCards = [
   { path: "/educator/attendance", icon: <FaClipboardList className="text-warning" />, label: "Take Attendance", borderColor: "#ffc107" },
   { path: "/educator/resources", icon: <FaBook className="text-success" />, label: "Manage Resources", borderColor: "#28a745" },
   { path: "/educator/permissions", icon: <FaUsers className="text-primary" />, label: "Set Permissions", borderColor: "#0d6efd" },
-  { path: "/educator/chat", icon: <FaComments className="text-purple-600" />, label: "Class Chat", borderColor: "#6f42c1" },
+  // { path: "/educator/chat", icon: <FaComments className="text-purple-600" />, label: "Class Chat", borderColor: "#6f42c1" },
   { path: "/educator/exams", icon: <FaPen className="text-danger" />, label: "Create Exams", borderColor: "#dc3545" },
 ];
 

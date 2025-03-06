@@ -22,7 +22,7 @@ function ClassPage() {
   const [classRoster, setClassRoster] = useState([]); // holds array of students
   const [selectedClassName, setSelectedClassName] = useState('');
 
-  const BASE_URL = 'http://localhost:5000';
+  const BASE_URL = 'https://virtual-school-2.onrender.com';
 
   // Retrieve token from localStorage
   const token = localStorage.getItem('token');

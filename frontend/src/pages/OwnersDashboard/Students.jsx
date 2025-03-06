@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Sidebar from "./Sidebar";
 
-const BASE_URL = "http://localhost:5000";
+const BASE_URL = "https://virtual-school-2.onrender.com";
 
 const Students = () => {
   // Form states for adding a new student

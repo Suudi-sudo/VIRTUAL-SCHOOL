@@ -10,7 +10,7 @@ import {
   FaSignOutAlt,
 } from "react-icons/fa";
 
-const BASE_URL = "http://localhost:5000";
+const BASE_URL = "https://virtual-school-2.onrender.com";
 
 const Sidebar = () => {
   const navigate = useNavigate();

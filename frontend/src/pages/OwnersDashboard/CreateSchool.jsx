@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "./Sidebar";
 
-const BASE_URL = "http://localhost:5000";
+const BASE_URL = "https://virtual-school-2.onrender.com";
 
 const CreateSchool = () => {
   const [name, setName] = useState("");
